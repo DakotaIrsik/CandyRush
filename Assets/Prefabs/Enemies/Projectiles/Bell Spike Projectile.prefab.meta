@@ -10,5 +10,5 @@ AssetOrigin:
   productId: 304936
   packageName: Monster Survivors - Full Game
   packageVersion: 1.2.1
-  assetPath: Assets/Common/Prefabs/Enemies/Projectiles/Bell Spike Projectile.prefab
+  assetPath: Assets/Prefabs/Enemies/Projectiles/Bell Spike Projectile.prefab
   uploadId: 767878

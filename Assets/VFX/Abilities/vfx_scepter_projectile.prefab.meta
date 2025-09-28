@@ -10,5 +10,5 @@ AssetOrigin:
   productId: 304936
   packageName: Monster Survivors - Full Game
   packageVersion: 1.2.1
-  assetPath: Assets/Common/VFX/Abilities/vfx_scepter_projectile.prefab
+  assetPath: Assets/VFX/Abilities/vfx_scepter_projectile.prefab
   uploadId: 767878

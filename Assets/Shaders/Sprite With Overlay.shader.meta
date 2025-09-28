@@ -12,5 +12,5 @@ AssetOrigin:
   productId: 304936
   packageName: Monster Survivors - Full Game
   packageVersion: 1.2.1
-  assetPath: Assets/Common/Shaders/Sprite With Overlay.shader
+  assetPath: Assets/Shaders/Sprite With Overlay.shader
   uploadId: 767878

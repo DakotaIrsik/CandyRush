@@ -26,5 +26,5 @@ AssetOrigin:
   productId: 304936
   packageName: Monster Survivors - Full Game
   packageVersion: 1.2.1
-  assetPath: Assets/Common/Audio/Sounds/chest_spawn.wav
+  assetPath: Assets/Audio/Sounds/chest_spawn.wav
   uploadId: 767878

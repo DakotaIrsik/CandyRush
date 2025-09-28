@@ -17,5 +17,5 @@ AssetOrigin:
   productId: 304936
   packageName: Monster Survivors - Full Game
   packageVersion: 1.2.1
-  assetPath: Assets/Common/Scriptables/Input/Input Asset.inputactions
+  assetPath: Assets/Scriptables/Input/Input Asset.inputactions
   uploadId: 767878

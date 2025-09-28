@@ -10,5 +10,5 @@ AssetOrigin:
   productId: 304936
   packageName: Monster Survivors - Full Game
   packageVersion: 1.2.1
-  assetPath: Assets/Common/Prefabs/UI/Screens/Main Menu Screen.prefab
+  assetPath: Assets/Prefabs/UI/Screens/Main Menu Screen.prefab
   uploadId: 767878

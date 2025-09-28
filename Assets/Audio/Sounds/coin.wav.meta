@@ -26,5 +26,5 @@ AssetOrigin:
   productId: 304936
   packageName: Monster Survivors - Full Game
   packageVersion: 1.2.1
-  assetPath: Assets/Common/Audio/Sounds/coin.wav
+  assetPath: Assets/Audio/Sounds/coin.wav
   uploadId: 767878
