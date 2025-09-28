@@ -1,0 +1,199 @@
+================================================================================
+                        PLAYER VISUAL SYSTEM DOCUMENTATION
+                              Candy Rush Unity Project
+================================================================================
+
+CORE RENDERING ARCHITECTURE
+================================================================================
+
+The player visual system uses a modular character prefab system with the
+following components:
+
+1. PlayerBehavior (PlayerBehavior.cs:11-365)
+   - Main controller that instantiates character prefabs
+   - Manages player state and visual updates
+
+2. CharacterBehavior (CharacterBehavior.cs:7-64)
+   - Implements ICharacterBehavior interface for visual control
+   - Handles sprite rendering and animation state management
+
+3. SpriteRenderer Component
+   - Core Unity 2D sprite rendering component
+   - Handles texture display and sorting layer management
+
+
+LAYER SYSTEM & SORTING ORDERS
+================================================================================
+
+The player uses Unity's sorting layer system with dynamic ordering:
+
+Sorting Order Values:
+- Default sorting order: 0 (CharacterBehavior.cs:267)
+  Used during normal gameplay
+
+- Death/Revive state: 102 (PlayerBehavior.cs:258, 337)
+  Renders above all gameplay elements for visibility
+
+- Layer 7: Enemy collision detection layer (PlayerBehavior.cs:275, 304)
+
+The sorting order changes ensure proper visual hierarchy:
+- Normal gameplay: Player renders at standard depth with enemies and projectiles
+- Death/Revival: Player appears above all other elements for clear visibility
+
+
+ANIMATION SYSTEM
+================================================================================
+
+The player uses Unity's Animator component with state-based animations:
+
+Animation States:
+----------------
+- Movement Speed (CharacterBehavior.cs:26-27)
+  Float parameter controls walk/run animation blend
+
+- Death Animation (CharacterBehavior.cs:40-42)
+  Triggered on player defeat
+
+- Revive Animation (CharacterBehavior.cs:35-37)
+  Plays during resurrection sequence
+
+- Directional Facing (PlayerBehavior.cs:162)
+  Horizontal flip via localScale.x modification
+
+Animation Parameters:
+--------------------
+- SPEED_FLOAT: Blends between idle/walk/run based on joystick magnitude
+- DEFEAT_TRIGGER: Initiates death sequence animation
+- REVIVE_TRIGGER: Initiates resurrection sequence animation
+
+
+VISUAL EFFECTS & OVERLAYS
+================================================================================
+
+Hit Flash System (CharacterBehavior.cs:50-63):
+-----------------------------------------------
+- Uses shader property "_Overlay" for damage indication
+- Two-phase flash sequence:
+  1. Transparent → Hit Color (0.05s)
+  2. Hit Color → Transparent (0.05s)
+- Total duration: 0.1s per hit
+- Color overlay applied via material property modification
+- Non-stacking (new hits ignored during active flash)
+
+Revival Visual Sequence (PlayerBehavior.cs:249-271):
+----------------------------------------------------
+- Particle system activation (reviveParticle)
+- Background sprite fade effect:
+  - Alpha animation over 0.3s
+  - Configurable spawn/hide delays
+- Bottom sprite fade effect:
+  - Independent alpha animation
+  - Separate timing controls
+- 3-second invincibility period with visual feedback
+- Sorting order elevation during sequence
+
+
+COLLISION VISUALIZATION
+================================================================================
+
+Player-Enemy Overlapping:
+-------------------------
+- Visual Response: Hit flash using overlay shader (PlayerBehavior.cs:332)
+- Damage indication via healthbar UI system
+- Screen Effects:
+  - Light vibration for regular hits
+  - Strong vibration for death
+- Continuous damage for enemies inside player collision
+
+Player-Projectile Interaction:
+------------------------------
+- Projectiles on separate collision layer from enemies
+- Same hit flash system applies on impact
+- No persistent overlap - projectiles are consumed on hit
+- Instant damage application
+
+
+TERRAIN & MOVEMENT BOUNDARIES
+================================================================================
+
+Field Validation System (PlayerBehavior.cs:150-158):
+----------------------------------------------------
+- Movement restricted by StageFieldManager validation
+- Fence offset parameter (fenceOffset) defines player collision bounds
+- Separate X and Y axis validation allows sliding along walls
+- Per-frame position validation before movement application
+
+Stage Types Supported:
+---------------------
+- Endless fields (infinite scrolling terrain)
+- Vertical endless (vertical-only scrolling)
+- Horizontal endless (horizontal-only scrolling)
+- Rectangular bounded arenas (fixed size)
+- Boss fight fences:
+  - Circular containment areas
+  - Rectangular boss arenas
+
+
+CHARACTER SCALING & DIRECTION
+================================================================================
+
+Dynamic Facing Direction:
+------------------------
+- Horizontal flip via transform.localScale.x (PlayerBehavior.cs:162)
+- Positive X scale = facing right
+- Negative X scale = facing left
+- Maintains sprite aspect ratio during flip
+- Instant direction change based on input
+
+Size Modifiers:
+--------------
+- Base size multiplier system (initialSizeMultiplier)
+- Can be modified by:
+  - Upgrades
+  - Abilities
+  - Temporary buffs
+- Applied to transform.localScale uniformly
+- Stacks multiplicatively with other modifiers
+
+
+RENDERING PIPELINE INTEGRATION
+================================================================================
+
+The player integrates with Unity's 2D rendering pipeline:
+
+- Sprite-based Rendering:
+  - SpriteRenderer component for texture display
+  - Support for sprite atlases and animations
+
+- Shader-based Effects:
+  - Custom overlay shader for damage/status effects
+  - Material property blocks for performance
+
+- Particle Systems:
+  - Revival particles
+  - Death effect particles
+  - GPU instanced for performance
+
+- Dynamic Sorting:
+  - Runtime sorting order adjustments
+  - Proper depth management across game states
+
+
+PERFORMANCE OPTIMIZATIONS
+================================================================================
+
+- Pooled visual effects to reduce instantiation overhead
+- Efficient shader property caching (static hash codes)
+- Conditional rendering updates only when state changes
+- Squared distance calculations for magnet radius checks
+- Material property blocks to avoid material instancing
+- Coroutine reuse for animation sequences
+- Early exit conditions in update loops
+
+This visual system provides responsive, layered rendering with clear visual
+feedback for all player states and interactions while maintaining performance
+through optimized Unity 2D rendering practices.
+
+================================================================================
+                                END OF DOCUMENT
+================================================================================
