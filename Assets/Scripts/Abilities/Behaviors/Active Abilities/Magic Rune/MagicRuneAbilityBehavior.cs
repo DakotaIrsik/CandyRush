@@ -39,7 +39,7 @@ namespace OctoberStudio.Abilities
                     mine.SetData(AbilityLevel);
                 }
 
-                GameController.AudioManager.PlaySound(MAGIC_RUNE_SETUP_HASH);
+                audioManager.PlaySound(MAGIC_RUNE_SETUP_HASH);
 
                 yield return new WaitForSeconds(AbilityLevel.AbilityCooldown * PlayerBehavior.Player.CooldownMultiplier);
             }

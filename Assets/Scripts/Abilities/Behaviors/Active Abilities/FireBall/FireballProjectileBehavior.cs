@@ -1,11 +1,22 @@
+using OctoberStudio.Audio;
 using OctoberStudio.Easing;
 using UnityEngine;
 using UnityEngine.Events;
+using VContainer;
 
 namespace OctoberStudio.Abilities
 {
     public class FireballProjectileBehavior : MonoBehaviour
     {
+        private IAudioManager audioManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager, IEasingManager easingManager)
+        {
+            this.audioManager = audioManager;
+            this.easingManager = easingManager;
+        }
         private static readonly int FIREBALL_LAUNCH_HASH = "Fireball Launch".GetHashCode();
         private static readonly int FIREBALL_EXPLOSION_HASH = "Fireball Explosion".GetHashCode();
 
@@ -37,7 +48,7 @@ namespace OctoberStudio.Abilities
             visuals.SetActive(true);
             fireballCollider.enabled = true;
 
-            GameController.AudioManager.PlaySound(FIREBALL_LAUNCH_HASH);
+            audioManager.PlaySound(FIREBALL_LAUNCH_HASH);
         }
 
         private void OnTriggerEnter2D(Collider2D other)
@@ -68,13 +79,13 @@ namespace OctoberStudio.Abilities
 
             explosionParticle.Play();
 
-            disableCoroutine = EasingManager.DoAfter(1f, () =>
+            disableCoroutine = easingManager.DoAfter(1f, () =>
             {
                 gameObject.SetActive(false);
                 onFinished?.Invoke(this);
             });
 
-            GameController.AudioManager.PlaySound(FIREBALL_EXPLOSION_HASH);
+            audioManager.PlaySound(FIREBALL_EXPLOSION_HASH);
         }
 
         public void Clear()

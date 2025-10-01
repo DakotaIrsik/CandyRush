@@ -71,7 +71,7 @@ namespace OctoberStudio.Abilities
 
                     lastTimeSpawned += AbilityCooldown;
 
-                    GameController.AudioManager.PlaySound(WAND_PROJECTILE_LAUNCH_HASH);
+                    audioManager.PlaySound(WAND_PROJECTILE_LAUNCH_HASH);
                 }
 
                 yield return null;

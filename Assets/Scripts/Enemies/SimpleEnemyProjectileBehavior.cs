@@ -1,10 +1,23 @@
+using OctoberStudio.DI;
+using OctoberStudio.Easing;
 using UnityEngine;
 using UnityEngine.Events;
+using VContainer;
 
 namespace OctoberStudio
 {
     public class SimpleEnemyProjectileBehavior : MonoBehaviour
     {
+        // Injected dependencies available to all derived classes
+        protected ICameraManager cameraManager;
+        protected IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(ICameraManager cameraManager, IEasingManager easingManager)
+        {
+            this.cameraManager = cameraManager;
+            this.easingManager = easingManager;
+        }
         [SerializeField] float speed;
         [Tooltip("After this amount of time the projectile will get disabled")]
         [SerializeField] float lifetime;

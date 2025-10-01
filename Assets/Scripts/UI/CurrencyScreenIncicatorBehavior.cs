@@ -1,5 +1,8 @@
+using OctoberStudio.DI;
+using OctoberStudio.Save;
 using OctoberStudio.UI;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.Currency
 {
@@ -10,13 +13,36 @@ namespace OctoberStudio.Currency
 
         public CurrencySave Currency { get; private set; }
 
+        // Injected dependencies
+        private ISaveManager saveManager;
+        private ICurrenciesManager currenciesManager;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager, ICurrenciesManager currenciesManager)
+        {
+            this.saveManager = saveManager;
+            this.currenciesManager = currenciesManager;
+        }
+
         private void Start()
         {
-            Currency = GameController.SaveManager.GetSave<CurrencySave>(currencyID);
+            if (saveManager == null)
+            {
+                Debug.LogError($"[CurrencyScreenIncicatorBehavior] SaveManager is null - dependency injection failed for {gameObject.name}");
+                return;
+            }
+
+            if (currenciesManager == null)
+            {
+                Debug.LogError($"[CurrencyScreenIncicatorBehavior] CurrenciesManager is null - dependency injection failed for {gameObject.name}");
+                return;
+            }
+
+            Currency = saveManager.GetSave<CurrencySave>(currencyID);
 
             SetAmount(Currency.Amount);
 
-            icon.sprite = GameController.CurrenciesManager.GetIcon(currencyID);
+            icon.sprite = currenciesManager.GetIcon(currencyID);
 
             Currency.onGoldAmountChanged += SetAmount;
         }

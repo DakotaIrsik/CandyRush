@@ -1,6 +1,7 @@
 using OctoberStudio.Easing;
 using System;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio
 {
@@ -9,6 +10,13 @@ namespace OctoberStudio
         [SerializeField] SpriteRenderer sprite;
 
         private IEasingCoroutine coroutine;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IEasingManager easingManager)
+        {
+            this.easingManager = easingManager;
+        }
 
         private bool isFollowing;
         private Transform followTarget;
@@ -20,7 +28,7 @@ namespace OctoberStudio
             coroutine.StopIfExists();
 
             sprite.size = Vector2.zero;
-            coroutine = EasingManager.DoFloat(0, size, spawnDuration, SetSize).SetEasing(EasingType.SineOut).SetOnFinish(() => DelayBeforeDisable(stayDuration, onFinished));
+            coroutine = easingManager.DoFloat(0, size, spawnDuration, SetSize).SetEasing(EasingType.SineOut).SetOnFinish(() => DelayBeforeDisable(stayDuration, onFinished));
         }
 
         public void Follow(Transform target, Vector3 offset, float drag)
@@ -51,7 +59,7 @@ namespace OctoberStudio
 
         private void DelayBeforeDisable(float duration, Action onFinished)
         {
-            coroutine = EasingManager.DoAfter(duration, () => {
+            coroutine = easingManager.DoAfter(duration, () => {
                 onFinished?.Invoke();
                 gameObject.SetActive(false);
             });

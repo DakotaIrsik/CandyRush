@@ -1,20 +1,22 @@
+using OctoberStudio.Audio;
 using OctoberStudio.Currency;
+using OctoberStudio.DI;
+using OctoberStudio.Easing;
+using OctoberStudio.Input;
+using OctoberStudio.Save;
+using OctoberStudio.Upgrades;
+using OctoberStudio.Vibration;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Linq;
+using VContainer;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 namespace OctoberStudio
 {
-    using OctoberStudio.Audio;
-    using OctoberStudio.Easing;
-    using OctoberStudio.Input;
-    using Save;
-    using Upgrades;
-    using Vibration;
 
     public class GameController : MonoBehaviour
     {
@@ -22,19 +24,44 @@ namespace OctoberStudio
 
         private static GameController instance;
 
-        [SerializeField] protected CurrenciesManager currenciesManager;
-        public static CurrenciesManager CurrenciesManager => instance.currenciesManager;
-
         [SerializeField] protected UpgradesManager upgradesManager;
-        public static UpgradesManager UpgradesManager => instance.upgradesManager;
-
         [SerializeField] protected ProjectSettings projectSettings;
-        public static ProjectSettings ProjectSettings => instance.projectSettings;
 
+        // Public properties for ProjectLifetimeScope registration
+        public UpgradesManager UpgradesManager => upgradesManager;
+
+        // Static accessor for ProjectSettings (needed by static scene loading methods)
+        public static ProjectSettings ProjectSettings => instance?.projectSettings;
+
+        // LEGACY: Static accessors for backward compatibility during DI migration
+        // TODO: Remove these once all code is converted to use dependency injection
         public static ISaveManager SaveManager { get; private set; }
         public static IAudioManager AudioManager { get; private set; }
         public static IVibrationManager VibrationManager { get; private set; }
         public static IInputManager InputManager { get; private set; }
+
+        // Injected dependencies
+        private ISaveManager saveManager;
+        private IAudioManager audioManager;
+        private IInputManager inputManager;
+        private IVibrationManager vibrationManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager, IAudioManager audioManager, IInputManager inputManager, IVibrationManager vibrationManager, IEasingManager easingManager)
+        {
+            this.saveManager = saveManager;
+            this.audioManager = audioManager;
+            this.inputManager = inputManager;
+            this.vibrationManager = vibrationManager;
+            this.easingManager = easingManager;
+
+            // Update static references for transitional compatibility
+            SaveManager = saveManager;
+            AudioManager = audioManager;
+            InputManager = inputManager;
+            VibrationManager = vibrationManager;
+        }
 
         public static CurrencySave Gold { get; private set; }
         public static CurrencySave TempGold { get; private set; }
@@ -61,7 +88,6 @@ namespace OctoberStudio
 
             FirstTimeLoaded = true;
 
-            currenciesManager.Init();
 
             DontDestroyOnLoad(gameObject);
 
@@ -70,21 +96,19 @@ namespace OctoberStudio
 
         protected virtual void Start()
         {
-            Gold = SaveManager.GetSave<CurrencySave>("gold");
-            TempGold = SaveManager.GetSave<CurrencySave>("temp_gold");
-
-            stageSave = SaveManager.GetSave<StageSave>("Stage");
-
-            if (!stageSave.loadedBefore)
+            // Initialize save data
+            if (saveManager != null)
             {
-                stageSave.loadedBefore = true;
+                stageSave = saveManager.GetSave<StageSave>("Stage");
+                Gold = saveManager.GetSave<CurrencySave>("Gold");
+                TempGold = saveManager.GetSave<CurrencySave>("TempGold");
             }
-#if UNITY_WEBGL && !UNITY_EDITOR
-            InputManager.InputAsset.UI.Click.performed += MusicStartWebGL;
-#else
 
-            EasingManager.DoAfter(0.2f, () => Music = AudioManager.PlayMusic(MAIN_MENU_MUSIC_NAME.GetHashCode()));
-#endif
+            // Start the main menu music when the game first loads
+            if (FirstTimeLoaded && audioManager != null)
+            {
+                Music = audioManager.PlayMusic(MAIN_MENU_MUSIC_NAME.GetHashCode());
+            }
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -92,7 +116,7 @@ namespace OctoberStudio
         {
             InputManager.InputAsset.UI.Click.performed -= MusicStartWebGL;
 
-            Music = AudioManager.PlayMusic(MAIN_MENU_MUSIC_NAME.GetHashCode());
+            Music = instance.audioManager.PlayMusic(MAIN_MENU_MUSIC_NAME.GetHashCode());
         }
 #endif
         public static void ChangeMusic(string musicName)
@@ -103,7 +127,7 @@ namespace OctoberStudio
                 oldMusic.DoVolume(0, 0.3f).SetOnFinish(() => oldMusic.Stop());
             }
 
-            Music = AudioManager.PlayMusic(musicName.GetHashCode());
+            Music = instance.audioManager.PlayMusic(musicName.GetHashCode());
 
             if(Music != null)
             {
@@ -153,21 +177,45 @@ namespace OctoberStudio
 
         public static void LoadStage()
         {
-            if(stageSave.ResetStageData) TempGold.Withdraw(TempGold.Amount);
+            // Initialize save data if not already initialized
+            if (instance.saveManager != null)
+            {
+                if (stageSave == null)
+                    stageSave = instance.saveManager.GetSave<StageSave>("Stage");
+                if (TempGold == null)
+                    TempGold = instance.saveManager.GetSave<CurrencySave>("TempGold");
+            }
+
+            if(stageSave != null && stageSave.ResetStageData && TempGold != null)
+            {
+                TempGold.Withdraw(TempGold.Amount);
+            }
 
             instance.StartCoroutine(StageLoadingCoroutine());
 
-            SaveManager.Save(false);
+            instance.saveManager?.Save(false);
         }
 
         public static void LoadMainMenu()
         {
-            Gold.Deposit(TempGold.Amount);
-            TempGold.Withdraw(TempGold.Amount);
+            // Initialize save data if not already initialized
+            if (instance.saveManager != null)
+            {
+                if (Gold == null)
+                    Gold = instance.saveManager.GetSave<CurrencySave>("Gold");
+                if (TempGold == null)
+                    TempGold = instance.saveManager.GetSave<CurrencySave>("TempGold");
+            }
+
+            if (Gold != null && TempGold != null)
+            {
+                Gold.Deposit(TempGold.Amount);
+                TempGold.Withdraw(TempGold.Amount);
+            }
 
             if (instance != null) instance.StartCoroutine(MainMenuLoadingCoroutine());
 
-            SaveManager.Save(false);
+            instance.saveManager?.Save(false);
         }
 
         protected static string GetLoadingScreenSceneName()
@@ -326,7 +374,7 @@ namespace OctoberStudio
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
             if (focus) { 
-                EasingManager.DoAfter(0.1f, () => { 
+                easingManager.DoAfter(0.1f, () => { 
                     if (!Music.isPlaying)
                     {
                         Music = AudioManager.AudioDatabase.Music.Play(true);

@@ -1,6 +1,7 @@
 using OctoberStudio.Easing;
 using UnityEngine;
 using UnityEngine.Events;
+using VContainer;
 
 namespace OctoberStudio.Enemy
 {
@@ -8,6 +9,14 @@ namespace OctoberStudio.Enemy
     {
         private static readonly int LAND_HASH = Animator.StringToHash("Land");
         private static readonly int SHAKE_HASH = Animator.StringToHash("Shake");
+
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IEasingManager easingManager)
+        {
+            this.easingManager = easingManager;
+        }
 
         [SerializeField] Animator animator;
         [SerializeField] ParticleSystem explosionParticle;
@@ -37,7 +46,7 @@ namespace OctoberStudio.Enemy
             transform.localScale = Vector3.one * 0.1f;
             transform.DoLocalScale(Vector3.one, 0.3f);
 
-            coroutine = EasingManager.DoFloat(0, 1, 0.5f, (t) => {
+            coroutine = easingManager.DoFloat(0, 1, 0.5f, (t) => {
                 transform.position = EvaluateQuadratic(startPosition, key, landingPosition, t);
             }).SetEasingCurve(movementCurve).SetOnFinish(() =>
             {
@@ -56,7 +65,7 @@ namespace OctoberStudio.Enemy
 
             isShaking = true;
             animator.SetTrigger(SHAKE_HASH);
-            coroutine = EasingManager.DoAfter(1f, () => {
+            coroutine = easingManager.DoAfter(1f, () => {
                 explosionParticle.Play();
                 blobObject.SetActive(false);
 
@@ -65,7 +74,7 @@ namespace OctoberStudio.Enemy
                     PlayerBehavior.Player.TakeDamage(Damage);
                 }
 
-                coroutine = EasingManager.DoAfter(5f,() => { 
+                coroutine = easingManager.DoAfter(5f,() => { 
                     Clear();
                     onExploded?.Invoke(this);
                 });

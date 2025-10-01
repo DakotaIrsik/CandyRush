@@ -1,10 +1,14 @@
+using OctoberStudio.Audio;
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
 using OctoberStudio.Input;
+using OctoberStudio.Vibration;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
@@ -18,20 +22,35 @@ namespace OctoberStudio.UI
         [SerializeField] Button backButton;
         [SerializeField] Button exitButton;
 
+        // Injected dependencies
+        private IAudioManager audioManager;
+        private IVibrationManager vibrationManager;
+        private IInputManager inputManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager, IVibrationManager vibrationManager, IInputManager inputManager, IEasingManager easingManager)
+        {
+            this.audioManager = audioManager;
+            this.vibrationManager = vibrationManager;
+            this.inputManager = inputManager;
+            this.easingManager = easingManager;
+        }
+
         private void Start()
         {
-            EasingManager.DoNextFrame().SetOnFinish(InitToggles);
+            easingManager.DoNextFrame().SetOnFinish(InitToggles);
         }
 
         private void InitToggles()
         {
-            soundToggle.SetToggle(GameController.AudioManager.SoundVolume != 0);
-            musicToggle.SetToggle(GameController.AudioManager.MusicVolume != 0);
-            vibrationToggle.SetToggle(GameController.VibrationManager.IsVibrationEnabled);
+            soundToggle.SetToggle(audioManager.SoundVolume != 0);
+            musicToggle.SetToggle(audioManager.MusicVolume != 0);
+            vibrationToggle.SetToggle(vibrationManager.IsVibrationEnabled);
 
-            soundToggle.onChanged += (soundEnabled) => GameController.AudioManager.SoundVolume = soundEnabled ? 1 : 0;
-            musicToggle.onChanged += (musicEnabled) => GameController.AudioManager.MusicVolume = musicEnabled ? 1 : 0;
-            vibrationToggle.onChanged += (vibrationEnabled) => GameController.VibrationManager.IsVibrationEnabled = vibrationEnabled;
+            soundToggle.onChanged += (soundEnabled) => audioManager.SoundVolume = soundEnabled ? 1 : 0;
+            musicToggle.onChanged += (musicEnabled) => audioManager.MusicVolume = musicEnabled ? 1 : 0;
+            vibrationToggle.onChanged += (vibrationEnabled) => vibrationManager.IsVibrationEnabled = vibrationEnabled;
         }
 
         public void Init(UnityAction onBackButtonClicked)
@@ -49,19 +68,19 @@ namespace OctoberStudio.UI
         public void Open()
         {
             gameObject.SetActive(true);
-            EasingManager.DoNextFrame(() => {
+            easingManager.DoNextFrame(() => {
                 soundToggle.Select();
-                GameController.InputManager.InputAsset.UI.Back.performed += OnBackInputClicked;
+                inputManager.InputAsset.UI.Back.performed += OnBackInputClicked;
             });
-            GameController.InputManager.onInputChanged += OnInputChanged;
+            inputManager.onInputChanged += OnInputChanged;
         }
 
         public void Close()
         {
             gameObject.SetActive(false);
 
-            GameController.InputManager.InputAsset.UI.Back.performed -= OnBackInputClicked;
-            GameController.InputManager.onInputChanged -= OnInputChanged;
+            inputManager.InputAsset.UI.Back.performed -= OnBackInputClicked;
+            inputManager.onInputChanged -= OnInputChanged;
         }
 
         private void OnBackInputClicked(InputAction.CallbackContext context)
@@ -73,7 +92,7 @@ namespace OctoberStudio.UI
         {
             if (prevInput == InputType.UIJoystick)
             {
-                EasingManager.DoNextFrame(soundToggle.Select);
+                easingManager.DoNextFrame(soundToggle.Select);
             }
         }
 

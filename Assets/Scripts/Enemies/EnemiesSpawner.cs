@@ -1,17 +1,21 @@
 using OctoberStudio.Bossfight;
+using OctoberStudio.DI;
 using OctoberStudio.Extensions;
 using OctoberStudio.Pool;
+using OctoberStudio.Save;
 using OctoberStudio.Timeline;
 using OctoberStudio.UI;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Playables;
+using VContainer;
 
 namespace OctoberStudio
 {
     [DefaultExecutionOrder(-10)]
-    public class EnemiesSpawner : MonoBehaviour
+    public class EnemiesSpawner : MonoBehaviour, IEnemiesSpawner
     {
         private List<EnemyBehavior> enemies = new List<EnemyBehavior>();
 
@@ -37,10 +41,30 @@ namespace OctoberStudio
 
         public bool IsBossfightActive { get; set; }
 
+        // Injected dependencies
+        private ISaveManager saveManager;
+        private IStageFieldManager stageFieldManager;
+        private IDropManager dropManager;
+        private IAbilityManager abilityManager;
+        private ICameraManager cameraManager;
+        private VContainer.IObjectResolver container;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager, IStageFieldManager stageFieldManager,
+                             IDropManager dropManager, IAbilityManager abilityManager, ICameraManager cameraManager, VContainer.IObjectResolver container)
+        {
+            this.saveManager = saveManager;
+            this.stageFieldManager = stageFieldManager;
+            this.dropManager = dropManager;
+            this.abilityManager = abilityManager;
+            this.cameraManager = cameraManager;
+            this.container = container;
+        }
+
         // Were creating pools only for the enemies that are present in the Stage Timeline
         public void Init(PlayableDirector director)
         {
-            stageSave = GameController.SaveManager.GetSave<StageSave>("Stage");
+            stageSave = saveManager.GetSave<StageSave>("Stage");
 
             Dictionary<EnemyType, int> enemiesOnLevel = new Dictionary<EnemyType, int>();
 
@@ -116,7 +140,7 @@ namespace OctoberStudio
         {
             if (!isOffscreenTeleportEnabled || IsBossfightActive) return;
 
-            var diagonalSqr = (CameraManager.HalfWidth * CameraManager.HalfWidth + CameraManager.HalfHeight * CameraManager.HalfHeight) * diagonalDistanceMultiplier;
+            var diagonalSqr = (cameraManager.HalfWidth * cameraManager.HalfWidth + cameraManager.HalfHeight * cameraManager.HalfHeight) * diagonalDistanceMultiplier;
             var diagonal = Mathf.Sqrt(diagonalSqr);
 
             var dotValue = teleportConeSize - 1;
@@ -181,6 +205,9 @@ namespace OctoberStudio
 
             var enemy = enemyPools[enemyType].GetEntity();
 
+            // Inject dependencies into the pooled enemy
+            container.Inject(enemy);
+
             enemy.SetData(database.GetEnemyData(enemyType));
 
             enemy.transform.position = position;
@@ -203,6 +230,9 @@ namespace OctoberStudio
 
                 var enemy = enemyPools[type].GetEntity();
 
+                // Inject dependencies into the pooled enemy
+                container.Inject(enemy);
+
                 enemy.SetData(database.GetEnemyData(type));
                 enemy.SetWaveOverride(waveOverride);
 
@@ -218,16 +248,16 @@ namespace OctoberStudio
 
                     if (circularSpawn)
                     {
-                        float height = Camera.main.orthographicSize;
-                        float width = height * Camera.main.aspect;
+                        float height = cameraManager.HalfHeight;
+                        float width = cameraManager.HalfWidth;
                         float diagonal = Mathf.Sqrt(width * width + height * height);
                         position = PlayerBehavior.Player.transform.position + Random.onUnitSphere.SetZ(0).normalized * diagonal * 1.05f;
                     } else
                     {
-                        position = CameraManager.GetRandomPointOutsideCamera(0.5f);
+                        position = cameraManager.GetRandomPointOutsideCamera(0.5f);
                     }
                     
-                    if(StageController.FieldManager.ValidatePosition(position, Vector2.zero))
+                    if(stageFieldManager.ValidatePosition(position, Vector2.zero))
                     {
                         foundPosition = true;
                         break;
@@ -240,7 +270,7 @@ namespace OctoberStudio
                     {
                         var middlePosition = Vector3.Lerp(position, PlayerBehavior.Player.transform.position, 1 - j / 10f);
 
-                        if (StageController.FieldManager.ValidatePosition(middlePosition, Vector2.zero))
+                        if (stageFieldManager.ValidatePosition(middlePosition, Vector2.zero))
                         {
                             foundPosition = true;
                             position = middlePosition;
@@ -251,7 +281,7 @@ namespace OctoberStudio
 
                 if (!foundPosition)
                 {
-                    position = StageController.FieldManager.GetRandomPositionOnBorder();
+                    position = stageFieldManager.GetRandomPositionOnBorder();
                 }
 
                 enemy.transform.position = position;
@@ -340,9 +370,9 @@ namespace OctoberStudio
                         {
                             if (dropData.Chance == 0) continue;
 
-                            if (Random.value * 100 <= dropData.Chance && StageController.DropManager.CheckDropCooldown(dropData.DropType))
+                            if (Random.value * 100 <= dropData.Chance && dropManager.CheckDropCooldown(dropData.DropType))
                             {
-                                StageController.DropManager.Drop(dropData.DropType, enemy.transform.position.XY() + Random.insideUnitCircle * 0.2f);
+                                dropManager.Drop(dropData.DropType, enemy.transform.position.XY() + Random.insideUnitCircle * 0.2f);
                             }
                         }
                     } else
@@ -378,9 +408,9 @@ namespace OctoberStudio
             foreach(var dropData in enemy.GetDropData())
             {
                 if(dropData.Chance == 0) continue;
-                if(Random.value * 100 <= dropData.Chance && StageController.DropManager.CheckDropCooldown(dropData.DropType))
+                if(Random.value * 100 <= dropData.Chance && dropManager.CheckDropCooldown(dropData.DropType))
                 {
-                    StageController.DropManager.Drop(dropData.DropType, enemy.transform.position.XY() + Random.insideUnitCircle * 0.2f);
+                    dropManager.Drop(dropData.DropType, enemy.transform.position.XY() + Random.insideUnitCircle * 0.2f);
                 }
             }
 
@@ -394,9 +424,9 @@ namespace OctoberStudio
             enemies.Remove(boss);
             boss.onEnemyDied -= OnBossDied;
 
-            if (boss.ShouldSpawnChestOnDeath && StageController.AbilityManager.HasAvailableAbilities()) StageController.DropManager.Drop(DropType.Chest, boss.transform.position.XY() + Random.insideUnitCircle);
-            StageController.DropManager.Drop(DropType.Magnet, boss.transform.position.XY() + Random.insideUnitCircle);
-            StageController.DropManager.Drop(DropType.Food, boss.transform.position.XY() + Random.insideUnitCircle);
+            if (boss.ShouldSpawnChestOnDeath && abilityManager.HasAvailableAbilities()) dropManager.Drop(DropType.Chest, boss.transform.position.XY() + Random.insideUnitCircle);
+            dropManager.Drop(DropType.Magnet, boss.transform.position.XY() + Random.insideUnitCircle);
+            dropManager.Drop(DropType.Food, boss.transform.position.XY() + Random.insideUnitCircle);
 
             enemiesDiedCounter++;
             stageSave.EnemiesKilled = enemiesDiedCounter;
@@ -423,6 +453,55 @@ namespace OctoberStudio
         public BossfightData GetBossData(BossType bossType)
         {
             return bossfightDatabase.GetBossfight(bossType);
+        }
+
+        // IEnemiesSpawner interface implementation
+        private Coroutine currentWaveCoroutine;
+
+        public void StartWave(WaveData waveData)
+        {
+            if (currentWaveCoroutine != null)
+            {
+                StopCoroutine(currentWaveCoroutine);
+            }
+            currentWaveCoroutine = StartCoroutine(SpawnWaveCoroutine(waveData));
+        }
+
+        public void StopSpawning()
+        {
+            if (currentWaveCoroutine != null)
+            {
+                StopCoroutine(currentWaveCoroutine);
+                currentWaveCoroutine = null;
+            }
+        }
+
+        public void SpawnEnemy(EnemyType type, Vector2 position)
+        {
+            Spawn(type, position);
+        }
+
+        private IEnumerator SpawnWaveCoroutine(WaveData waveData)
+        {
+            int spawned = 0;
+            while (spawned < waveData.enemyCount)
+            {
+                Vector2 spawnPos = waveData.spawnPosition;
+                if (spawnPos == Vector2.zero)
+                {
+                    // Use default spawn logic if no position specified
+                    spawnPos = cameraManager.GetRandomPointOutsideCamera(2f);
+                }
+
+                SpawnEnemy(waveData.enemyType, spawnPos);
+                spawned++;
+
+                if (spawned < waveData.enemyCount)
+                {
+                    yield return new WaitForSeconds(waveData.spawnInterval);
+                }
+            }
+            currentWaveCoroutine = null;
         }
     }
 }

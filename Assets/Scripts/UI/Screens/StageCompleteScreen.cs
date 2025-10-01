@@ -1,21 +1,34 @@
 using OctoberStudio.Audio;
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
 using OctoberStudio.Input;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
     public class StageCompleteScreen : MonoBehaviour
     {
         private Canvas canvas;
+        private IAudioManager audioManager;
+        private IInputManager inputManager;
+        private ISceneLoader sceneLoader;
 
         private static readonly int STAGE_COMPLETE_HASH = "Stage Complete".GetHashCode();
 
         [SerializeField] CanvasGroup canvasGroup;
         [SerializeField] Button button;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager, IInputManager inputManager, ISceneLoader sceneLoader)
+        {
+            this.audioManager = audioManager;
+            this.inputManager = inputManager;
+            this.sceneLoader = sceneLoader;
+        }
 
         private void Awake()
         {
@@ -31,11 +44,11 @@ namespace OctoberStudio.UI
 
             gameObject.SetActive(true);
 
-            GameController.AudioManager.PlaySound(STAGE_COMPLETE_HASH);
+            audioManager.PlaySound(STAGE_COMPLETE_HASH);
 
             EventSystem.current.SetSelectedGameObject(button.gameObject);
 
-            GameController.InputManager.onInputChanged += OnInputChanged;
+            inputManager.onInputChanged += OnInputChanged;
         }
 
         public void Hide(UnityAction onFinish = null)
@@ -45,16 +58,16 @@ namespace OctoberStudio.UI
                 onFinish?.Invoke();
             });
 
-            GameController.InputManager.onInputChanged -= OnInputChanged;
+            inputManager.onInputChanged -= OnInputChanged;
         }
 
         private void OnButtonClicked()
         {
-            GameController.AudioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
+            audioManager.PlaySound(AudioService.BUTTON_CLICK_HASH);
             Time.timeScale = 1;
-            GameController.LoadMainMenu();
+            sceneLoader.LoadMainMenu();
 
-            GameController.InputManager.onInputChanged -= OnInputChanged;
+            inputManager.onInputChanged -= OnInputChanged;
         }
 
         private void OnInputChanged(InputType prevInput, InputType inputType)

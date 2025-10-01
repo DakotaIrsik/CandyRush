@@ -1,3 +1,4 @@
+using OctoberStudio.Audio;
 using OctoberStudio.Easing;
 using OctoberStudio.Enemy;
 using OctoberStudio.Extensions;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+using VContainer;
 
 namespace OctoberStudio
 {
@@ -87,6 +89,17 @@ namespace OctoberStudio
 
         private static int lastFrameHitSound;
         private float lastTimeHitSound;
+
+        // Injected dependencies
+        private IAudioManager audioManager;
+        protected IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager, IEasingManager easingManager)
+        {
+            this.audioManager = audioManager;
+            this.easingManager = easingManager;
+        }
 
         protected virtual void Awake()
         {
@@ -246,7 +259,7 @@ namespace OctoberStudio
             // Playing Damage Sound
             if(Time.frameCount != lastFrameHitSound && Time.unscaledTime - lastTimeHitSound > 0.2f)
             {
-                GameController.AudioManager.PlaySound(HIT_HASH);
+                audioManager.PlaySound(HIT_HASH);
 
                 lastFrameHitSound = Time.frameCount;
                 lastTimeHitSound = Time.unscaledTime;

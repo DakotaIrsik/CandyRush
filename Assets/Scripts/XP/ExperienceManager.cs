@@ -1,11 +1,15 @@
+using OctoberStudio.Audio;
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
+using OctoberStudio.Save;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using VContainer;
 
 namespace OctoberStudio
 {
-    public class ExperienceManager : MonoBehaviour
+    public class ExperienceManager : MonoBehaviour, IExperienceManager
     {
         [SerializeField] ExperienceData experienceData;
         [SerializeField] ExperienceUI experienceUI;
@@ -20,9 +24,22 @@ namespace OctoberStudio
 
         StageSave stageSave;
 
+        // Injected dependencies
+        private ISaveManager saveManager;
+        private IAudioManager audioManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager, IAudioManager audioManager, IEasingManager easingManager)
+        {
+            this.saveManager = saveManager;
+            this.audioManager = audioManager;
+            this.easingManager = easingManager;
+        }
+
         public void Init(PresetData testingPreset)
         {
-            stageSave = GameController.SaveManager.GetSave<StageSave>("Stage");
+            stageSave = saveManager.GetSave<StageSave>("Stage");
 
             XP = 0;
             Level = 0;
@@ -40,7 +57,7 @@ namespace OctoberStudio
             }
 
             TargetXP = experienceData.GetXP(Level);
-            EasingManager.DoNextFrame().SetOnFinish(() => experienceUI.SetProgress(XP / TargetXP));
+            easingManager.DoNextFrame().SetOnFinish(() => experienceUI.SetProgress(XP / TargetXP));
             experienceUI.SetLevelText(Level + 1);
         }
 
@@ -89,7 +106,7 @@ namespace OctoberStudio
 
             experienceUI.SetLevelText(Level + 1);
 
-            GameController.AudioManager.PlaySound(LEVEL_UP_HASH);
+            audioManager.PlaySound(LEVEL_UP_HASH);
 
             onXpLevelChanged?.Invoke(Level);
         }

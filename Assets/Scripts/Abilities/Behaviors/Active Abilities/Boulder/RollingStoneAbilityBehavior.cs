@@ -15,7 +15,7 @@ namespace OctoberStudio.Abilities
             boulderProjectileBehavior.transform.position = PlayerBehavior.CenterPosition;
             boulderProjectileBehavior.Direction = (Vector2.up + Vector2.right).normalized;
 
-            GameController.AudioManager.PlaySound(ROLLING_STONE_LAUNCH_HASH);
+            audioManager.PlaySound(ROLLING_STONE_LAUNCH_HASH);
         }
 
         protected override void SetAbilityLevel(int stageId)

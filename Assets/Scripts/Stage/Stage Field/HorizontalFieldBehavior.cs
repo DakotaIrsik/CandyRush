@@ -38,6 +38,7 @@ namespace OctoberStudio
             }
 
             var chunk = backgroundPools.Random().GetEntity();
+            chunk.Construct(cameraManager);
 
             chunk.transform.position = Vector3.zero;
             chunk.transform.rotation = Quaternion.identity;
@@ -48,7 +49,7 @@ namespace OctoberStudio
             chunks.Add(chunk);
 
             wait = false;
-            EasingManager.DoNextFrame().SetOnFinish(() => wait = true);
+            easingManager.DoNextFrame().SetOnFinish(() => wait = true);
         }
 
         public override void Update()
@@ -72,6 +73,7 @@ namespace OctoberStudio
             if (chunks[0].HasEmptyRight)
             {
                 var chunk = backgroundPools.Random().GetEntity();
+                chunk.Construct(cameraManager);
                 var chunkBellow = chunks[0];
 
                 chunk.transform.position = chunkBellow.transform.position + Vector3.right * chunk.Size.y;
@@ -90,6 +92,7 @@ namespace OctoberStudio
             if (chunks[^1].HasEmptyLeft)
             {
                 var chunk = backgroundPools.Random().GetEntity();
+                chunk.Construct(cameraManager);
                 var chunkOnTop = chunks[^1];
 
                 chunk.transform.position = chunkOnTop.transform.position + Vector3.left * chunk.Size.y;
@@ -211,7 +214,7 @@ namespace OctoberStudio
             float y = Random.Range(-chunks[0].Size.y / 2, chunks[0].Size.y / 2) + chunks[0].transform.position.y;
 
             float sign = Random.Range(0, 2) * 2 - 1;
-            float x = PlayerBehavior.Player.transform.position.x + CameraManager.HalfWidth * 1.05f * sign;
+            float x = PlayerBehavior.Player.transform.position.x + cameraManager.HalfWidth * 1.05f * sign;
 
             return new Vector2(x, y);
         }

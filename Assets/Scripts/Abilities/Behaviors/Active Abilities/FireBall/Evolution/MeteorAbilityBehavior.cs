@@ -52,7 +52,7 @@ namespace OctoberStudio.Abilities
                     {
                         if (counter > 10) break;
 
-                        impactPosition = CameraManager.GetPointInsideCamera();
+                        impactPosition = cameraManager.GetPointInsideCamera();
 
                         counter++;
                     }

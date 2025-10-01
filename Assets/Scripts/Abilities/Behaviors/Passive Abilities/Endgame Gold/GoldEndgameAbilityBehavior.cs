@@ -13,7 +13,9 @@ namespace OctoberStudio.Abilities
             var gold = AbilityLevel.GoldAmount * PlayerBehavior.Player.GoldMultiplier;
             var clampedGold = Mathf.RoundToInt(gold);
 
-            GameController.TempGold.Deposit(clampedGold);
+            var currenciesManager = GetCurrenciesManager();
+            var tempGold = currenciesManager.GetCurrency("TempGold");
+            tempGold.Deposit(clampedGold);
         }
     }
 }

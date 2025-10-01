@@ -225,7 +225,7 @@ namespace OctoberStudio.Enemy
                 particle.Play();
 
                 IEasingCoroutine coroutine = null;
-                coroutine = EasingManager.DoAfter(5f, () =>
+                coroutine = easingManager.DoAfter(5f, () =>
                 {
                     particle.gameObject.SetActive(false);
                     explosionCoroutines.Remove(coroutine);

@@ -23,24 +23,24 @@ namespace OctoberStudio
 
             Rect bounds = GetBounds();
 
-            float distanceX;
-            if (CameraManager.IsPointOutsideCameraRight(bounds.max, out distanceX) || StageController.FieldManager.IsPointOutsideFieldRight(bounds.max, out distanceX))
+            float distanceX = 0f;
+            if (cameraManager != null && (cameraManager.IsPointOutsideCameraRight(bounds.max, out distanceX) || StageController.FieldManager.IsPointOutsideFieldRight(bounds.max, out distanceX)))
             {
                 if (direction.x > 0) direction.x *= -1;
             }
-            else if (CameraManager.IsPointOutsideCameraLeft(bounds.min, out distanceX) || StageController.FieldManager.IsPointOutsideFieldLeft(bounds.max, out distanceX))
+            else if (cameraManager != null && (cameraManager.IsPointOutsideCameraLeft(bounds.min, out distanceX) || StageController.FieldManager.IsPointOutsideFieldLeft(bounds.max, out distanceX)))
             {
                 if (direction.x < 0) direction.x *= -1;
             }
 
             if (distanceX > 0f) transform.position += direction * Mathf.Abs(distanceX / direction.x);
 
-            float distanceY;
-            if (CameraManager.IsPointOutsideCameraTop(bounds.max, out distanceY) || StageController.FieldManager.IsPointOutsideFieldTop(bounds.max, out distanceY))
+            float distanceY = 0f;
+            if (cameraManager != null && (cameraManager.IsPointOutsideCameraTop(bounds.max, out distanceY) || StageController.FieldManager.IsPointOutsideFieldTop(bounds.max, out distanceY)))
             {
                 if (direction.y > 0) direction.y *= -1;
             }
-            else if (CameraManager.IsPointOutsideCameraBottom(bounds.min, out distanceY) || StageController.FieldManager.IsPointOutsideFieldBottom(bounds.max, out distanceY))
+            else if (cameraManager != null && (cameraManager.IsPointOutsideCameraBottom(bounds.min, out distanceY) || StageController.FieldManager.IsPointOutsideFieldBottom(bounds.max, out distanceY)))
             {
                 if (direction.y < 0) direction.y *= -1;
             }

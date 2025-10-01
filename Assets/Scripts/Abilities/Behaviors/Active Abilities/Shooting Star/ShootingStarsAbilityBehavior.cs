@@ -64,7 +64,7 @@ namespace OctoberStudio.Abilities
                     stars.Add(star);
                 }
 
-                EasingManager.DoFloat(0, 1, 0.5f, value => radiusMultiplier = value).SetEasing(EasingType.SineOut);
+                easingManager.DoFloat(0, 1, 0.5f, value => radiusMultiplier = value).SetEasing(EasingType.SineOut);
 
                 yield return new WaitForSeconds(lifetime - 0.5f);
 
@@ -75,12 +75,12 @@ namespace OctoberStudio.Abilities
                     star.Hide();
                 }
 
-                EasingManager.DoFloat(1, 0, 0.5f, value => radiusMultiplier = value).SetEasing(EasingType.SineOut);
+                easingManager.DoFloat(1, 0, 0.5f, value => radiusMultiplier = value).SetEasing(EasingType.SineOut);
 
                 float delay = cooldown - lifetime;
                 if (delay < 0.5f) delay = 0.5f;
 
-                GameController.AudioManager.PlaySound(SHOOTING_STARS_LAUNCH_HASH);
+                audioManager.PlaySound(SHOOTING_STARS_LAUNCH_HASH);
 
                 yield return new WaitForSeconds(delay);
 

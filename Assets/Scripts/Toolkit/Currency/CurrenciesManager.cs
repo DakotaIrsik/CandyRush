@@ -1,24 +1,21 @@
+using OctoberStudio.DI;
+using OctoberStudio.Save;
 using UnityEngine;
 
 namespace OctoberStudio.Currency
 {
-    public class CurrenciesManager : MonoBehaviour
+    /// <summary>
+    /// DEPRECATED: Use CurrenciesService via dependency injection instead
+    /// This MonoBehaviour wrapper is kept for backward compatibility only
+    /// </summary>
+    [System.Obsolete("Use CurrenciesService via dependency injection instead")]
+    public class CurrenciesManager : MonoBehaviour, ICurrenciesManager
     {
-        private static CurrenciesManager instance;
-
         [SerializeField] CurrenciesDatabase database;
 
         public void Init()
         {
-            if(instance != null)
-            {
-                Destroy(this);
-
-                return;
-            }
-
-            instance = this;
-
+            // Legacy initialization - service pattern doesn't need this
             DontDestroyOnLoad(gameObject);
         }
 
@@ -38,6 +35,14 @@ namespace OctoberStudio.Currency
             if (data == null) return null;
 
             return data.Name;
+        }
+
+        public CurrencySave GetCurrency(string currencyId)
+        {
+            // This is a legacy implementation - proper service would access through SaveManager
+            // For now, return null since this deprecated class shouldn't be used
+            Debug.LogWarning($"CurrenciesManager.GetCurrency() called for {currencyId} - use CurrenciesService instead");
+            return null;
         }
     }
 }

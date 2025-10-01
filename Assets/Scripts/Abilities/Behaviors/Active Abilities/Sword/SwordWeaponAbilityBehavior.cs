@@ -46,6 +46,7 @@ namespace OctoberStudio.Abilities
                 for(int i = 0; i < AbilityLevel.SlashesCount; i++)
                 {
                     var slash = slashPool.GetEntity();
+                    slash.Construct(audioManager, cameraManager, easingManager);
 
                     slash.transform.position = PlayerBehavior.CenterPosition;
                     slash.transform.rotation = Quaternion.FromToRotation(Vector2.right, PlayerBehavior.Player.LookDirection) * shashDirections[i].localRotation;
@@ -60,7 +61,7 @@ namespace OctoberStudio.Abilities
                     slash.onFinished += OnProjectileFinished;
                     slashes.Add(slash);
 
-                    GameController.AudioManager.PlaySound(STEEL_SWORD_ATTACK_HASH);
+                    audioManager.PlaySound(STEEL_SWORD_ATTACK_HASH);
 
                     yield return new WaitForSeconds(AbilityLevel.TimeBetweenSlashes * PlayerBehavior.Player.CooldownMultiplier);
                 }

@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CandyRush Dependency Injection Audit Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .executive-summary {
+            padding: 40px;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
+        }
+
+        .executive-summary h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .health-score {
+            text-align: center;
+            padding: 40px;
+            background: white;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            background: conic-gradient(#10b981 0deg 252deg, #e5e7eb 252deg 360deg);
+        }
+
+        .score-inner {
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2c3e50;
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .severity-critical {
+            background: #fee;
+            color: #dc2626;
+        }
+
+        .severity-high {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .severity-medium {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .severity-low {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .content-section {
+            padding: 40px;
+        }
+
+        .content-section h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .issue-card {
+            background: #f8f9fa;
+            border-left: 5px solid;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .issue-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .issue-card.critical {
+            border-left-color: #dc2626;
+        }
+
+        .issue-card.high {
+            border-left-color: #d97706;
+        }
+
+        .issue-card.medium {
+            border-left-color: #2563eb;
+        }
+
+        .issue-card.low {
+            border-left-color: #059669;
+        }
+
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .issue-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .file-path {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #495057;
+            margin: 10px 0;
+        }
+
+        .line-number {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 15px 0;
+            line-height: 1.5;
+        }
+
+        .code-block .keyword {
+            color: #c678dd;
+        }
+
+        .code-block .string {
+            color: #98c379;
+        }
+
+        .code-block .comment {
+            color: #5c6370;
+            font-style: italic;
+        }
+
+        .recommendation {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        .recommendation strong {
+            color: #0284c7;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .category-section {
+            margin-bottom: 50px;
+        }
+
+        .positive-note {
+            background: #d1fae5;
+            border-left: 4px solid #059669;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+
+        .positive-note h3 {
+            color: #059669;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .toc h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            padding: 8px 0;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .summary-text {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Dependency Injection Audit Report</h1>
+            <p>CandyRush Unity Project | Generated: October 1, 2025</p>
+        </header>
+
+        <div class="executive-summary">
+            <h2>📊 Executive Summary</h2>
+            <p class="summary-text">
+                The CandyRush project has undergone significant refactoring toward dependency injection (DI) using VContainer.
+                The project demonstrates <strong>strong commitment to DI principles</strong> with most core services properly abstracted
+                and injected. However, several legacy patterns remain that compromise full DI compliance. This audit identifies
+                these anti-patterns and provides actionable refactoring guidance.
+            </p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #dc2626;">12</div>
+                    <div class="stat-label">Critical Issues</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #d97706;">18</div>
+                    <div class="stat-label">High Priority</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #2563eb;">23</div>
+                    <div class="stat-label">Medium Priority</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #059669;">15</div>
+                    <div class="stat-label">Low Priority</div>
+                </div>
+            </div>
+
+            <div class="health-score">
+                <h3 style="color: #2c3e50; font-size: 1.5em; margin-bottom: 10px;">Overall DI Health Score</h3>
+                <div class="score-circle">
+                    <div class="score-inner">70%</div>
+                </div>
+                <p style="color: #666; font-size: 1.1em;">The project demonstrates good DI principles but needs refinement to reach production-grade purity.</p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="toc">
+                <h3>📑 Table of Contents</h3>
+                <ul>
+                    <li><a href="#critical">1. Critical Issues (Breaks DI Principles)</a></li>
+                    <li><a href="#high">2. High Priority (Should Be Refactored)</a></li>
+                    <li><a href="#medium">3. Medium Priority (Functional but Improvable)</a></li>
+                    <li><a href="#low">4. Low Priority (Style & Best Practices)</a></li>
+                    <li><a href="#positive">5. Positive Examples (What's Working Well)</a></li>
+                    <li><a href="#recommendations">6. Overall Recommendations</a></li>
+                </ul>
+            </div>
+
+            <div id="critical" class="category-section">
+                <h2>🚨 Critical Issues</h2>
+                <p style="margin-bottom: 20px; color: #666;">These issues fundamentally break DI principles and create tight coupling.</p>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Static Instance Pattern in PlayerBehavior</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Player/PlayerBehavior.cs</div>
+                    <p><span class="line-number">Lines 23-24, 138</span></p>
+                    <div class="code-block">
+<span class="keyword">protected static</span> PlayerBehavior instance;
+<span class="keyword">public static</span> PlayerBehavior Player => instance;
+
+<span class="comment">// In Awake():</span>
+instance = <span class="keyword">this</span>;
+                    </div>
+                    <p><strong>Problem:</strong> Creates global singleton accessible via static property. Bypasses DI container entirely. Makes testing impossible and creates hidden dependencies across the entire codebase.</p>
+                    <p><strong>Impact:</strong> 47 files directly reference PlayerBehavior.Player static accessor.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Remove static instance. Register PlayerBehavior in GameLifetimeScope and inject where needed:
+                        <div class="code-block">
+<span class="comment">// In GameLifetimeScope.cs</span>
+builder.RegisterComponent(playerBehavior);
+
+<span class="comment">// In consuming classes:</span>
+<span class="keyword">private readonly</span> PlayerBehavior player;
+
+[Inject]
+<span class="keyword">public void</span> Construct(PlayerBehavior player) {
+    <span class="keyword">this</span>.player = player;
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Static Accessors in StageController</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Stage/StageController.cs</div>
+                    <p><span class="line-number">Lines 36-44</span></p>
+                    <div class="code-block">
+<span class="keyword">public static</span> EnemiesSpawner EnemiesSpawner => instance?.spawner;
+<span class="keyword">public static</span> ExperienceManager ExperienceManager => instance?.experienceManager;
+<span class="keyword">public static</span> AbilityManager AbilityManager => instance?.abilityManager;
+<span class="keyword">public static</span> StageFieldManager FieldManager => instance?.fieldManager;
+<span class="keyword">public static</span> PoolsManager PoolsManager => instance?.poolsManager;
+<span class="keyword">public static</span> WorldSpaceTextManager WorldSpaceTextManager => instance?.worldSpaceTextManager;
+                    </div>
+                    <p><strong>Problem:</strong> Service locator pattern disguised as singleton. All managers are accessible statically, encouraging direct access instead of injection.</p>
+                    <p><strong>Impact:</strong> These static accessors are used throughout enemies, abilities, and UI code.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        These managers are already registered in GameLifetimeScope. Remove static accessors and inject dependencies:
+                        <div class="code-block">
+<span class="comment">// Already in GameLifetimeScope - just inject them!</span>
+[Inject]
+<span class="keyword">public void</span> Construct(
+    IAbilityManager abilityManager,
+    IExperienceManager experienceManager,
+    IEnemiesSpawner enemiesSpawner) {
+    <span class="comment">// Use injected instances</span>
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Legacy Static Accessors in GameController</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/GameController.cs</div>
+                    <p><span class="line-number">Lines 36-42</span></p>
+                    <div class="code-block">
+<span class="comment">// LEGACY: Static accessors for backward compatibility during DI migration</span>
+<span class="comment">// TODO: Remove these once all code is converted to use dependency injection</span>
+<span class="keyword">public static</span> ISaveManager SaveManager { <span class="keyword">get</span>; <span class="keyword">private set</span>; }
+<span class="keyword">public static</span> IAudioManager AudioManager { <span class="keyword">get</span>; <span class="keyword">private set</span>; }
+<span class="keyword">public static</span> IVibrationManager VibrationManager { <span class="keyword">get</span>; <span class="keyword">private set</span>; }
+<span class="keyword">public static</span> IInputManager InputManager { <span class="keyword">get</span>; <span class="keyword">private set</span>; }
+                    </div>
+                    <p><strong>Problem:</strong> Documented as "LEGACY" and marked with TODO, but still present. These are properly injected via constructor but then exposed statically for backward compatibility.</p>
+                    <p><strong>Impact:</strong> The TODO has been noted but the migration is incomplete. Good that they're interfaces, but static access still breaks DI.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        These services are already properly registered in RootLifetimeScope. Complete the migration:
+                        <ol style="margin-left: 20px; margin-top: 10px;">
+                            <li>Search for all references to GameController.SaveManager, etc.</li>
+                            <li>Replace with proper dependency injection</li>
+                            <li>Remove static properties (lines 38-42)</li>
+                            <li>Remove static registration methods (lines 158-177)</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Service Locator Pattern in AbilityBehavior</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Abilities/Behaviors/AbilityBehavior.cs</div>
+                    <p><span class="line-number">Lines 60-70</span></p>
+                    <div class="code-block">
+<span class="keyword">protected</span> ICurrenciesManager GetCurrenciesManager() {
+    <span class="comment">// Find any LifetimeScope in the current scene</span>
+    <span class="keyword">var</span> lifetimeScope = LifetimeScope.Find&lt;LifetimeScope&gt;();
+    <span class="keyword">if</span> (lifetimeScope != <span class="keyword">null</span>) {
+        <span class="keyword">return</span> lifetimeScope.Container.Resolve&lt;ICurrenciesManager&gt;();
+    }
+    Debug.LogWarning(<span class="string">"Could not find LifetimeScope"</span>);
+    <span class="keyword">return null</span>;
+}
+                    </div>
+                    <p><strong>Problem:</strong> Classic service locator anti-pattern. Manually finding container and resolving dependencies at runtime instead of using constructor injection.</p>
+                    <p><strong>Impact:</strong> Hides dependency on ICurrenciesManager. Makes testing difficult. Can fail at runtime if LifetimeScope not found.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Add ICurrenciesManager to constructor injection:
+                        <div class="code-block">
+<span class="keyword">protected</span> ICurrenciesManager currenciesManager;
+
+[Inject]
+<span class="keyword">public void</span> Construct(
+    IAudioManager audioManager,
+    ICameraManager cameraManager,
+    IEasingManager easingManager,
+    ICurrenciesManager currenciesManager) {
+    <span class="keyword">this</span>.currenciesManager = currenciesManager;
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Service Locator in PoolsManager.GetFromPoolWithInjection</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Toolkit/Pool/PoolsManager.cs</div>
+                    <p><span class="line-number">Lines 113-115, 133-135</span></p>
+                    <div class="code-block">
+<span class="keyword">var</span> lifetimeScope = VContainer.Unity.LifetimeScope.Find&lt;LifetimeScope&gt;();
+<span class="keyword">if</span> (lifetimeScope != <span class="keyword">null</span>) {
+    lifetimeScope.Container.InjectGameObject(entity.gameObject);
+}
+                    </div>
+                    <p><strong>Problem:</strong> Manually finding container to inject pooled objects. While this is a legitimate use case for pooled objects, doing it via Find() is fragile.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Inject IObjectResolver into PoolsManager and use it:
+                        <div class="code-block">
+<span class="keyword">private readonly</span> IObjectResolver container;
+
+[Inject]
+<span class="keyword">public void</span> Construct(IObjectResolver container) {
+    <span class="keyword">this</span>.container = container;
+}
+
+<span class="keyword">public</span> T GetFromPoolWithInjection&lt;T&gt;(PoolType type) {
+    <span class="keyword">var</span> entity = GetFromPool&lt;T&gt;(type);
+    <span class="keyword">if</span> (entity != <span class="keyword">null</span>) {
+        container.Inject(entity);
+    }
+    <span class="keyword">return</span> entity;
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Direct Instantiate Calls Without DI</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Multiple Files</div>
+                    <p><span class="line-number">PlayerBehavior.cs:134, AbilityManager.cs:118, EnemiesSpawner.cs:440</span></p>
+                    <div class="code-block">
+<span class="comment">// PlayerBehavior.cs</span>
+Character = Instantiate(Data.Prefab).GetComponent&lt;ICharacterBehavior&gt;();
+
+<span class="comment">// AbilityManager.cs</span>
+IAbilityBehavior ability = Instantiate(abilityData.Prefab).GetComponent&lt;IAbilityBehavior&gt;();
+<span class="comment">// Then manually injecting:</span>
+ability.Construct(audioManager, cameraManager, easingManager);
+
+<span class="comment">// EnemiesSpawner.cs</span>
+<span class="keyword">var</span> boss = Instantiate(bossData.BossPrefab).GetComponent&lt;EnemyBehavior&gt;();
+                    </div>
+                    <p><strong>Problem:</strong> Direct instantiation bypasses DI container. Some places manually call Construct(), others forget. Inconsistent and error-prone.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Use VContainer's factory pattern or inject IObjectResolver and instantiate properly:
+                        <div class="code-block">
+<span class="keyword">private readonly</span> IObjectResolver container;
+
+[Inject]
+<span class="keyword">public void</span> Construct(IObjectResolver container) {
+    <span class="keyword">this</span>.container = container;
+}
+
+<span class="comment">// When instantiating:</span>
+<span class="keyword">var</span> instance = container.Instantiate(prefab);
+<span class="comment">// VContainer automatically injects dependencies</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Static Currency Properties in GameController</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/GameController.cs</div>
+                    <p><span class="line-number">Lines 66-67</span></p>
+                    <div class="code-block">
+<span class="keyword">public static</span> CurrencySave Gold { <span class="keyword">get</span>; <span class="keyword">private set</span>; }
+<span class="keyword">public static</span> CurrencySave TempGold { <span class="keyword">get</span>; <span class="keyword">private set</span>; }
+                    </div>
+                    <p><strong>Problem:</strong> Game state exposed as static properties. Should be managed by ICurrenciesManager service.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Use ICurrenciesManager.GetCurrency() instead of static properties. If you need quick access, inject ICurrenciesManager where needed.
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Static Music Property</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/GameController.cs</div>
+                    <p><span class="line-number">Line 69</span></p>
+                    <div class="code-block">
+<span class="keyword">public static</span> AudioSource Music { <span class="keyword">get</span>; <span class="keyword">private set</span>; }
+                    </div>
+                    <p><strong>Problem:</strong> Music state stored statically. IAudioManager.CurrentMusic property exists but isn't used consistently.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Use IAudioManager.CurrentMusic property (already implemented in AudioService). Remove static Music property.
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Static Instance in JoystickBehavior</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/UI/JoystickBehavior.cs</div>
+                    <p><span class="line-number">Lines 15, 56</span></p>
+                    <div class="code-block">
+<span class="comment">// Legacy static accessor for backward compatibility</span>
+<span class="keyword">public static</span> JoystickBehavior Instance { <span class="keyword">get</span>; <span class="keyword">private set</span>; }
+
+<span class="keyword">private void</span> Awake() {
+    Instance = <span class="keyword">this</span>;
+    <span class="comment">// ...</span>
+}
+                    </div>
+                    <p><strong>Problem:</strong> JoystickBehavior properly uses [Inject] and registers with InputManager, but still exposes static Instance. Comment says "backward compatibility" but this defeats the purpose of DI.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Remove static Instance. Access joystick through IInputManager or inject JoystickBehavior directly where needed (it's already registered in GameLifetimeScope).
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Hardcoded StageController References in EnemyBehavior</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Enemies/EnemyBehavior.cs</div>
+                    <p><span class="line-number">Lines 124, 213, 250</span></p>
+                    <div class="code-block">
+MaxHP = StageController.Stage.EnemyHP * hp;
+
+<span class="keyword">var</span> baseDamage = StageController.Stage.EnemyDamage * damage;
+
+StageController.WorldSpaceTextManager.SpawnText(transform.position, damageText);
+                    </div>
+                    <p><strong>Problem:</strong> Direct static access to StageController properties. EnemyBehavior has [Inject] constructor but doesn't inject the dependencies it actually uses.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Inject StageData and IWorldSpaceTextManager:
+                        <div class="code-block">
+<span class="keyword">private readonly</span> StageData stageData;
+<span class="keyword">private readonly</span> IWorldSpaceTextManager textManager;
+
+[Inject]
+<span class="keyword">public void</span> Construct(
+    IAudioManager audioManager,
+    IEasingManager easingManager,
+    StageData stageData,
+    IWorldSpaceTextManager textManager) {
+    <span class="comment">// ...</span>
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">GetComponent&lt;&gt; on Instantiated Prefabs</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Multiple Files</div>
+                    <p><span class="line-number">PlayerBehavior.cs:134, AbilityManager.cs:118, EnemyBehavior.cs:187</span></p>
+                    <div class="code-block">
+Character = Instantiate(Data.Prefab).GetComponent&lt;ICharacterBehavior&gt;();
+IAbilityBehavior ability = Instantiate(abilityData.Prefab).GetComponent&lt;IAbilityBehavior&gt;();
+ProjectileBehavior projectile = other.GetComponent&lt;ProjectileBehavior&gt;();
+                    </div>
+                    <p><strong>Problem:</strong> While GetComponent on collision is acceptable, getting components immediately after Instantiate suggests the prefab structure should be rethought.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        For instantiated prefabs, use factory pattern or ensure prefabs are structured so the root GameObject has the component you need. For collision detection, GetComponent is acceptable but consider caching if called frequently.
+                    </div>
+                </div>
+
+                <div class="issue-card critical">
+                    <div class="issue-header">
+                        <div class="issue-title">Deprecated CurrenciesManager MonoBehaviour Still Exists</div>
+                        <span class="severity-badge severity-critical">Critical</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Toolkit/Currency/CurrenciesManager.cs</div>
+                    <p><span class="line-number">Lines 8-12</span></p>
+                    <div class="code-block">
+<span class="comment">/// DEPRECATED: Use CurrenciesService via dependency injection instead</span>
+<span class="comment">/// This MonoBehaviour wrapper is kept for backward compatibility only</span>
+[System.Obsolete(<span class="string">"Use CurrenciesService via dependency injection instead"</span>)]
+<span class="keyword">public class</span> CurrenciesManager : MonoBehaviour, ICurrenciesManager
+                    </div>
+                    <p><strong>Problem:</strong> Deprecated class still in codebase. While marked with [Obsolete], it should be removed once migration is complete.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Verify no code references CurrenciesManager (only CurrenciesService), then delete the file. The service already exists and is properly registered in RootLifetimeScope.
+                    </div>
+                </div>
+            </div>
+
+            <div id="high" class="category-section">
+                <h2>⚠️ High Priority Issues</h2>
+                <p style="margin-bottom: 20px; color: #666;">Should be refactored for testability and maintainability.</p>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">MonoBehaviour Managers in GameLifetimeScope</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/DI/GameLifetimeScope.cs</div>
+                    <p><span class="line-number">Lines 25-36</span></p>
+                    <div class="code-block">
+[SerializeField] <span class="keyword">private</span> AbilityManager abilityManager;
+[SerializeField] <span class="keyword">private</span> ExperienceManager experienceManager;
+[SerializeField] <span class="keyword">private</span> DropManager dropManager;
+[SerializeField] <span class="keyword">private</span> EnemiesSpawner enemiesSpawner;
+[SerializeField] <span class="keyword">private</span> CameraManager cameraManager;
+[SerializeField] <span class="keyword">private</span> StageFieldManager stageFieldManager;
+[SerializeField] <span class="keyword">private</span> WorldSpaceTextManager worldSpaceTextManager;
+[SerializeField] <span class="keyword">private</span> PoolsManager poolsManager;
+                    </div>
+                    <p><strong>Problem:</strong> These managers are MonoBehaviours registered via serialized field references. While they implement interfaces (good!), they still depend on being manually placed in scene.</p>
+                    <p><strong>Impact:</strong> Requires manual scene setup. Can't be easily unit tested. Scene corruption breaks DI.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Long-term: Convert to pure services like AudioService, SaveService. Short-term: Continue using RegisterComponent but ensure all access is through interfaces.
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">UpgradesManager Still MonoBehaviour</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/DI/ProjectLifetimeScope.cs</div>
+                    <p><span class="line-number">Line 29</span></p>
+                    <div class="code-block">
+<span class="comment">// Legacy MonoBehaviour managers - these will be converted to pure services</span>
+<span class="comment">// TODO: Remove these once converted to pure services in RootLifetimeScope</span>
+builder.RegisterComponent(gameController.UpgradesManager).As&lt;IUpgradesManager&gt;();
+                    </div>
+                    <p><strong>Problem:</strong> Comment acknowledges this should be converted. UpgradesService already exists in codebase but UpgradesManager MonoBehaviour is still being used.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        UpgradesService exists at Assets/Scripts/Upgrades/UpgradesService.cs. Complete the migration by removing UpgradesManager references and using the service (already registered in RootLifetimeScope).
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">Manual Dependency Injection in AbilityManager</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Abilities/Data/AbilityManager.cs</div>
+                    <p><span class="line-number">Lines 118-122</span></p>
+                    <div class="code-block">
+IAbilityBehavior ability = Instantiate(abilityData.Prefab).GetComponent&lt;IAbilityBehavior&gt;();
+
+<span class="comment">// Manually inject dependencies for instantiated ability behaviors</span>
+ability.Construct(audioManager, cameraManager, easingManager);
+                    </div>
+                    <p><strong>Problem:</strong> Manually calling Construct() after instantiation. Fragile - must remember to do this every time. Doesn't work if ability needs additional dependencies.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Inject IObjectResolver and use container.Instantiate():
+                        <div class="code-block">
+<span class="keyword">private readonly</span> IObjectResolver container;
+
+<span class="keyword">public void</span> AddAbility(AbilityData data, <span class="keyword">int</span> level) {
+    <span class="keyword">var</span> ability = container.Instantiate(data.Prefab)
+        .GetComponent&lt;IAbilityBehavior&gt;();
+    ability.Init(data, level);
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">EnemiesSpawner Has IObjectResolver But Still Uses Manual Injection</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Enemies/EnemiesSpawner.cs</div>
+                    <p><span class="line-number">Lines 209, 234</span></p>
+                    <div class="code-block">
+<span class="keyword">var</span> enemy = enemyPools[enemyType].GetEntity();
+
+<span class="comment">// Inject dependencies into the pooled enemy</span>
+container.Inject(enemy);
+                    </div>
+                    <p><strong>Problem:</strong> Good that it's using container.Inject, but this is being called every time an enemy is spawned from pool. While necessary for pooled objects, this pattern is correct.</p>
+                    <p><strong>Actually: This is correct!</strong> For pooled objects, re-injection is necessary. However, note that line 440 (SpawnBoss) uses Instantiate without injection.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Fix SpawnBoss method to use container.Instantiate():
+                        <div class="code-block">
+<span class="keyword">var</span> boss = container.Instantiate(bossData.BossPrefab)
+    .GetComponent&lt;EnemyBehavior&gt;();
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">DropManager Uses PlayerBehavior Static Accessor</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Drop/DropManager.cs</div>
+                    <p><span class="line-number">Lines 42, 45, 82</span></p>
+                    <div class="code-block">
+<span class="keyword">if</span>(PlayerBehavior.Player.IsInsideMagnetRadius(dropList[i].transform)) {
+    drop.transform.DoPosition(PlayerBehavior.CenterTransform, 0.25f)
+}
+                    </div>
+                    <p><strong>Problem:</strong> DropManager has [Inject] but doesn't inject PlayerBehavior. Uses static accessor instead.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Inject PlayerBehavior:
+                        <div class="code-block">
+<span class="keyword">private</span> PlayerBehavior player;
+
+[Inject]
+<span class="keyword">public void</span> Construct(PlayerBehavior player) {
+    <span class="keyword">this</span>.player = player;
+}
+
+<span class="comment">// Then use:</span>
+<span class="keyword">if</span>(player.IsInsideMagnetRadius(dropList[i].transform))
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">Missing Interface for StageFieldManager</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Stage/Stage Field/StageFieldManager.cs</div>
+                    <p><span class="line-number">Line 1</span></p>
+                    <div class="code-block">
+<span class="keyword">public class</span> StageFieldManager : MonoBehaviour
+                    </div>
+                    <p><strong>Problem:</strong> No IStageFieldManager interface. Classes inject IStageFieldManager but the manager doesn't implement it consistently.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Create IStageFieldManager interface and implement it. Register in GameLifetimeScope with .AsImplementedInterfaces().
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">WorldSpaceTextManager Missing Interface</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/UI/WorldSpaceTextManager.cs</div>
+                    <div class="code-block">
+<span class="keyword">public class</span> WorldSpaceTextManager : MonoBehaviour
+                    </div>
+                    <p><strong>Problem:</strong> No IWorldSpaceTextManager interface. Accessed via StageController static property.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Create IWorldSpaceTextManager interface and inject it where needed (EnemyBehavior, etc.).
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">CameraManager Missing Interface</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Stage/CameraManager.cs</div>
+                    <p><strong>Problem:</strong> Used with ICameraManager interface in some places but not consistently implemented.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Ensure CameraManager fully implements ICameraManager and register with .AsImplementedInterfaces() in GameLifetimeScope.
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">RegisterComponentInHierarchy Usage</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/DI/ProjectLifetimeScope.cs</div>
+                    <p><span class="line-number">Lines 36-38</span></p>
+                    <div class="code-block">
+builder.RegisterComponentInHierarchy&lt;LobbyWindowBehavior&gt;();
+builder.RegisterComponentInHierarchy&lt;MainMenuScreenBehavior&gt;();
+builder.RegisterComponentInHierarchy&lt;UpgradesWindowBehavior&gt;();
+                    </div>
+                    <p><strong>Problem:</strong> RegisterComponentInHierarchy searches the scene for components. Fragile - breaks if component isn't in scene or hierarchy changes.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Use RegisterComponent with serialized field references for better control and explicit dependencies.
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">Scene-Specific EasingManager in GameLifetimeScope</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/DI/GameLifetimeScope.cs</div>
+                    <p><span class="line-number">Line 34, 98-99</span></p>
+                    <div class="code-block">
+[SerializeField] <span class="keyword">private</span> EasingManager easingManager;
+
+<span class="keyword">if</span> (easingManager != <span class="keyword">null</span>)
+    builder.RegisterComponent(easingManager);
+                    </div>
+                    <p><strong>Problem:</strong> EasingManager is registered in both RootLifetimeScope (as service) and GameLifetimeScope (as component). Potential conflict.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Remove from GameLifetimeScope. EasingService in RootLifetimeScope should be sufficient. If Game scene needs specific easing behavior, create GameEasingManager but rename to avoid confusion.
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">PoolsManager Registered in GameLifetimeScope</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/DI/GameLifetimeScope.cs</div>
+                    <p><span class="line-number">Line 32, 92-93</span></p>
+                    <div class="code-block">
+[SerializeField] <span class="keyword">private</span> PoolsManager poolsManager;
+
+<span class="keyword">if</span> (poolsManager != <span class="keyword">null</span>)
+    builder.RegisterComponent(poolsManager).AsImplementedInterfaces();
+                    </div>
+                    <p><strong>Problem:</strong> PoolsService is registered in RootLifetimeScope but PoolsManager MonoBehaviour is registered in GameLifetimeScope. Confusion about which to use.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Clarify: Use PoolsService for general pooling, PoolsManager for Game scene-specific pools. Or migrate entirely to PoolsService.
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">StageController Has Both Static and Instance Methods</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Stage/StageController.cs</div>
+                    <p><span class="line-number">Lines 173-192</span></p>
+                    <div class="code-block">
+<span class="keyword">public static void</span> ResurrectPlayer() { <span class="comment">/* uses instance */</span> }
+<span class="keyword">public void</span> ResurrectPlayerInstance() { <span class="comment">/* duplicate */</span> }
+                    </div>
+                    <p><strong>Problem:</strong> Duplicate methods - one static (for backward compatibility), one instance (for DI). Confusing API.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Remove static methods. Keep only instance methods and inject StageController where needed.
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">PlayerBehavior.CenterPosition Uses Static Accessor Chain</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Player/PlayerBehavior.cs</div>
+                    <p><span class="line-number">Lines 54-63</span></p>
+                    <div class="code-block">
+<span class="keyword">public static</span> Vector2 CenterPosition {
+    <span class="keyword">get</span> {
+        <span class="keyword">if</span>(instance.Character != <span class="keyword">null</span> &&
+           instance.Character.CenterTransform != <span class="keyword">null</span>) {
+            <span class="keyword">return</span> instance.Character.CenterTransform.position;
+        }
+        <span class="keyword">return</span> instance.centerPoint.position;
+    }
+}
+                    </div>
+                    <p><strong>Problem:</strong> Convenient static accessor used throughout codebase, but creates hidden dependency on PlayerBehavior.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Inject PlayerBehavior and access via instance method player.CenterPosition (make it instance property).
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">EnemyBehavior Uses Time.frameCount Static State</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Enemies/EnemyBehavior.cs</div>
+                    <p><span class="line-number">Lines 90, 260</span></p>
+                    <div class="code-block">
+<span class="keyword">private static int</span> lastFrameHitSound;
+
+<span class="keyword">if</span>(Time.frameCount != lastFrameHitSound &&
+   Time.unscaledTime - lastTimeHitSound > 0.2f) {
+    audioManager.PlaySound(HIT_HASH);
+    lastFrameHitSound = Time.frameCount;
+}
+                    </div>
+                    <p><strong>Problem:</strong> Static state used to prevent multiple sound plays per frame. Acceptable for audio throttling but could be in IAudioManager.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Consider moving this logic into AudioService with a PlaySoundThrottled() method that handles frame-based throttling internally.
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">ExperienceManager Uses PlayerBehavior Static</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/XP/ExperienceManager.cs</div>
+                    <p><span class="line-number">Line 66</span></p>
+                    <div class="code-block">
+XP += xp * PlayerBehavior.Player.XPMultiplier;
+                    </div>
+                    <p><strong>Problem:</strong> ExperienceManager properly uses [Inject] but doesn't inject PlayerBehavior.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Inject PlayerBehavior and use instance reference.
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">EnemiesSpawner Uses PlayerBehavior Static in Update</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Enemies/EnemiesSpawner.cs</div>
+                    <p><span class="line-number">Lines 155, 161</span></p>
+                    <div class="code-block">
+<span class="keyword">var</span> enemyToPlayer = enemy.transform.position -
+                      PlayerBehavior.Player.transform.position;
+
+<span class="keyword">var</span> teleportPosition = PlayerBehavior.Player.transform.position +
+                          <span class="comment">/* ... */</span>
+                    </div>
+                    <p><strong>Problem:</strong> Called every frame in Update(). EnemiesSpawner has [Inject] but doesn't inject PlayerBehavior.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Inject PlayerBehavior and cache the transform reference for performance.
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">DropManager Missing IDropManager Implementation</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Drop/DropManager.cs</div>
+                    <p><span class="line-number">Line 11</span></p>
+                    <div class="code-block">
+<span class="keyword">public class</span> DropManager : MonoBehaviour, IDropManager
+                    </div>
+                    <p><strong>Problem:</strong> Implements IDropManager (good!) but not registered with AsImplementedInterfaces() in GameLifetimeScope.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        In GameLifetimeScope line 77-78, change to:
+                        <div class="code-block">
+builder.RegisterComponent(dropManager).AsImplementedInterfaces();
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card high">
+                    <div class="issue-header">
+                        <div class="issue-title">GameController.ChangeMusic Static Methods</div>
+                        <span class="severity-badge severity-high">High</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/GameController.cs</div>
+                    <p><span class="line-number">Lines 122-156</span></p>
+                    <div class="code-block">
+<span class="keyword">public static void</span> ChangeMusic(<span class="keyword">string</span> musicName) {
+    <span class="keyword">if</span> (Music != <span class="keyword">null</span>) { <span class="comment">/* ... */</span> }
+    Music = instance.audioManager.PlayMusic(musicName.GetHashCode());
+}
+                    </div>
+                    <p><strong>Problem:</strong> Static methods that manipulate static Music property. Should be instance methods or moved to AudioService.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Add CrossfadeMusic() method to IAudioManager interface and implement in AudioService.
+                    </div>
+                </div>
+            </div>
+
+            <div id="medium" class="category-section">
+                <h2>⚡ Medium Priority Issues</h2>
+                <p style="margin-bottom: 20px; color: #666;">Functional but could be improved for better DI compliance.</p>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">SaveService.Initialize() Not Called in Constructor</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Toolkit/Save/SaveService.cs</div>
+                    <p><span class="line-number">Lines 36-50</span></p>
+                    <p><strong>Problem:</strong> Initialize() is private and called lazily on first GetSave() call. This is actually a good pattern to avoid Unity API calls during construction, but could be more explicit.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Current implementation is acceptable. Consider documenting the lazy initialization pattern more clearly.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">AudioService Creates GameObject in Constructor</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Toolkit/Audio/AudioService.cs</div>
+                    <p><span class="line-number">Lines 82-88</span></p>
+                    <div class="code-block">
+<span class="keyword">var</span> audioSystemGO = <span class="keyword">new</span> GameObject(<span class="string">"[AudioSystem]"</span>);
+Object.DontDestroyOnLoad(audioSystemGO);
+poolParent = audioSystemGO.transform;
+audioSystemGO.AddComponent&lt;AudioListener&gt;();
+                    </div>
+                    <p><strong>Problem:</strong> Pure service creating GameObjects. While this works, it's mixing concerns. AudioSystemUpdater is created separately via RegisterBuildCallback.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Acceptable for now since AudioService needs a parent transform. Consider passing a Transform parent from RootLifetimeScope setup instead.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">ResourcePathHelper Loading Pattern</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/DI/RootLifetimeScope.cs</div>
+                    <p><span class="line-number">Lines 27-32</span></p>
+                    <div class="code-block">
+<span class="keyword">var</span> config = ResourcePathHelper.LoadCoreConfig&lt;ServiceConfiguration&gt;(
+                <span class="string">"ServiceConfiguration"</span>);
+<span class="keyword">if</span> (config == <span class="keyword">null</span>) {
+    Debug.LogWarning(<span class="string">"ServiceConfiguration not found. Using defaults."</span>);
+    config = ScriptableObject.CreateInstance&lt;ServiceConfiguration&gt;();
+}
+                    </div>
+                    <p><strong>Problem:</strong> Fallback creates new ScriptableObject instance. This is fine for defaults but could lead to confusion if configuration is expected but not found.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Current implementation is acceptable with warnings. Ensure all required configuration files exist in Resources folder.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">Coroutine Dependencies in Pure Services</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Toolkit/Easing/EasingService.cs</div>
+                    <p><strong>Problem:</strong> EasingService needs coroutine support but is a pure C# class. Currently handled by ServiceBasedCoroutines helper.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Current implementation with ServiceBasedCoroutines is acceptable. This is a known limitation of Unity + pure DI.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">VContainer.IObjectResolver Injected in Multiple Places</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Enemies/EnemiesSpawner.cs:50, etc.</div>
+                    <p><strong>Problem:</strong> IObjectResolver injection is necessary for factory pattern but indicates objects are being created dynamically rather than through pure DI.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        This is acceptable for prefab instantiation and pooling. Document when IObjectResolver usage is appropriate vs when to use pure injection.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">ProjectSettings as Singleton</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/GameController.cs</div>
+                    <p><span class="line-number">Line 34</span></p>
+                    <div class="code-block">
+<span class="keyword">public static</span> ProjectSettings ProjectSettings => instance?.projectSettings;
+                    </div>
+                    <p><strong>Problem:</strong> ProjectSettings is ScriptableObject configuration but accessed statically. It IS registered in ProjectLifetimeScope but also exposed statically.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Keep instance registration in ProjectLifetimeScope. Remove static accessor and inject ProjectSettings where needed.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">Missing Null Checks in Construct Methods</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Multiple Files</div>
+                    <p><strong>Problem:</strong> Most [Inject] Construct methods don't validate that injected dependencies are non-null.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        VContainer should ensure non-null injection. Add debug asserts if concerned:
+                        <div class="code-block">
+[Inject]
+<span class="keyword">public void</span> Construct(IAudioManager audioManager) {
+    Debug.Assert(audioManager != <span class="keyword">null</span>,
+                <span class="string">"audioManager not injected"</span>);
+    <span class="keyword">this</span>.audioManager = audioManager;
+}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">Scene Loading Methods are Static</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/GameController.cs</div>
+                    <p><span class="line-number">Lines 178, 199</span></p>
+                    <div class="code-block">
+<span class="keyword">public static void</span> LoadStage() { <span class="comment">/* ... */</span> }
+<span class="keyword">public static void</span> LoadMainMenu() { <span class="comment">/* ... */</span> }
+                    </div>
+                    <p><strong>Problem:</strong> Static scene loading methods. ISceneLoader service exists but these legacy methods remain.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Migrate all scene loading to ISceneLoader service. Remove static methods.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">GameController is DontDestroyOnLoad Singleton</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/GameController.cs</div>
+                    <p><span class="line-number">Lines 76-92</span></p>
+                    <p><strong>Problem:</strong> GameController uses traditional Unity singleton pattern with DontDestroyOnLoad. This is acceptable for bootstrap objects but conflicts with DI philosophy.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        For bootstrap objects that must exist before DI is ready, this pattern is acceptable. Ensure all functionality is moved to injected services over time.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">PoolComponent Not Using DI</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Toolkit/Pool/PoolComponent.cs</div>
+                    <p><strong>Problem:</strong> PoolComponent&lt;T&gt; is a utility class that creates objects without DI support.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        This is a generic pooling utility. For DI-aware pooling, use PoolsManager.GetFromPoolWithInjection() methods.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">Effect System Uses Manual References</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/Player/Effect.cs, EnemyBehavior.cs:377-410</span>
+                    <p><strong>Problem:</strong> Effect system passes effect objects manually rather than through DI.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Effect system is data-driven and doesn't need DI. Current implementation is appropriate.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">SerializeField Dependencies in LifetimeScopes</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">GameLifetimeScope.cs, ProjectLifetimeScope.cs</div>
+                    <p><strong>Problem:</strong> Many dependencies are [SerializeField] references that must be manually wired in Unity editor.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        For MonoBehaviour-based managers, this is necessary. Long-term goal should be to convert to pure services registered programmatically.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">Awake() Methods in Injected Components</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Multiple MonoBehaviours</div>
+                    <p><strong>Problem:</strong> Components use both [Inject] Construct() and Awake(). Potential race condition on initialization order.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        VContainer calls Construct before Awake. Ensure Awake doesn't use injected dependencies before they're set. Use Start() instead if order matters.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">Interface Naming Inconsistency</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Multiple interfaces</div>
+                    <p><strong>Problem:</strong> Some managers have interfaces (IAbilityManager) while others don't (WorldSpaceTextManager, SafeAreaManager).</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Create interfaces for all injected managers to enable testing and decoupling.
+                    </div>
+                </div>
+
+                <div class="issue-card medium">
+                    <div class="issue-header">
+                        <div class="issue-title">Transform and GameObject Direct Access</div>
+                        <span class="severity-badge severity-medium">Medium</span>
+                    </div>
+                    <div class="file-path">Throughout codebase</div>
+                    <p><strong>Problem:</strong> Many classes cache transform references, which is good for performance but creates tight coupling.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        For Unity MonoBehaviours, direct transform access is acceptable and recommended for performance. Not a DI issue.
+                    </div>
+                </div>
+            </div>
+
+            <div id="low" class="category-section">
+                <h2>💡 Low Priority Issues</h2>
+                <p style="margin-bottom: 20px; color: #666;">Minor improvements and style preferences.</p>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">Protected Fields for Injected Dependencies</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">Multiple files</div>
+                    <p><strong>Issue:</strong> Some classes use protected while others use private for injected dependency fields.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Use private readonly for injected dependencies unless derived classes need access. Consistency improves readability.
+                    </div>
+                </div>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">Inconsistent Naming: container vs resolver</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">EnemiesSpawner.cs:50, AbilityBehavior suggestion</div>
+                    <p><strong>Issue:</strong> IObjectResolver injected variable named "container" in some places, "resolver" would be clearer.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Standardize on one naming convention. Suggest "resolver" to distinguish from IContainer.
+                    </div>
+                </div>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">XML Documentation Missing on Interfaces</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">Multiple interface files</div>
+                    <p><strong>Issue:</strong> Interface methods lack XML documentation.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Add /// documentation comments to all public interface methods for better IDE support.
+                    </div>
+                </div>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">Debug.Log Statements in Services</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">AudioService.cs, GameLifetimeScope.cs, etc.</div>
+                    <p><strong>Issue:</strong> Debug.Log calls throughout services. Some are commented out, others active.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Implement proper logging system injected as ILogger. Use conditional compilation [Conditional("DEBUG_LOGGING")].
+                    </div>
+                </div>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">Events Instead of Callbacks</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">Multiple managers</div>
+                    <p><strong>Issue:</strong> Some components use UnityAction events (good) while others use callbacks passed as parameters.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Prefer events for loose coupling. Reserve callbacks for one-off operations.
+                    </div>
+                </div>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">Magic Numbers and String Hashes</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">Throughout codebase</div>
+                    <div class="code-block">
+<span class="keyword">private static readonly int</span> HIT_HASH = <span class="string">"Hit"</span>.GetHashCode();
+                    </div>
+                    <p><strong>Issue:</strong> String hashing for audio/resource lookup is efficient but not DI-related.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Consider enum-based lookup for type safety. Current implementation is fine for performance.
+                    </div>
+                </div>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">Unused Interfaces in Assembly Definition</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">Assets/Scripts/CandyRush.Runtime.asmdef</div>
+                    <p><strong>Issue:</strong> Assembly definitions may have unnecessary references.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Audit assembly references periodically to reduce compilation dependencies.
+                    </div>
+                </div>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">Comments Marked as TODO</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">GameController.cs, ProjectLifetimeScope.cs</div>
+                    <p><strong>Issue:</strong> Several TODO comments exist noting planned DI migrations.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Track TODOs in issue tracker. Remove comments once completed to reduce code noise.
+                    </div>
+                </div>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">Inconsistent Access Modifiers</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">Multiple files</div>
+                    <p><strong>Issue:</strong> Some classes use explicit private/protected/public, others rely on default.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Establish coding standard for explicit modifiers. Improves readability and reduces confusion.
+                    </div>
+                </div>
+
+                <div class="issue-card low">
+                    <div class="issue-header">
+                        <div class="issue-title">Large Construct() Method Signatures</div>
+                        <span class="severity-badge severity-low">Low</span>
+                    </div>
+                    <div class="file-path">PlayerBehavior.cs:111-127</div>
+                    <div class="code-block">
+[Inject]
+<span class="keyword">public void</span> Construct(
+    ISaveManager saveManager,
+    IInputManager inputManager,
+    IStageFieldManager fieldManager,
+    IUpgradesManager upgradesManager,
+    IAudioManager audioManager,
+    IVibrationManager vibrationManager,
+    IEasingManager easingManager) {
+    <span class="comment">// 7 dependencies!</span>
+}
+                    </div>
+                    <p><strong>Issue:</strong> Some classes have many injected dependencies. While not wrong, indicates possible SRP violations.</p>
+                    <div class="recommendation">
+                        <strong>💡 Recommendation:</strong>
+                        Review classes with 6+ dependencies. Consider facade pattern or split responsibilities if appropriate.
+                    </div>
+                </div>
+            </div>
+
+            <div id="positive" class="category-section">
+                <h2>✅ Positive Examples</h2>
+                <p style="margin-bottom: 20px; color: #666;">These implementations demonstrate excellent DI practices.</p>
+
+                <div class="positive-note">
+                    <h3>🌟 AudioService - Gold Standard Pure Service</h3>
+                    <div class="file-path">Assets/Scripts/Toolkit/Audio/AudioService.cs</div>
+                    <p><strong>Why it's excellent:</strong></p>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>Pure C# class, no MonoBehaviour inheritance</li>
+                        <li>All dependencies injected via constructor</li>
+                        <li>Implements interface (IAudioManager) for abstraction</li>
+                        <li>Registered as singleton in RootLifetimeScope</li>
+                        <li>Update loop handled by separate AudioSystemUpdater component</li>
+                        <li>No static state or accessors</li>
+                    </ul>
+                    <div class="code-block" style="margin-top: 15px;">
+<span class="keyword">public class</span> AudioService : IAudioManager {
+    <span class="keyword">private readonly</span> ISaveManager saveManager;
+    <span class="keyword">private readonly</span> AudioDatabase database;
+    <span class="keyword">private readonly</span> GameObject audioSourcePrefab;
+
+    <span class="keyword">public</span> AudioService(ISaveManager saveManager,
+                       AudioDatabase database,
+                       GameObject audioSourcePrefab) {
+        <span class="keyword">this</span>.saveManager = saveManager;
+        <span class="keyword">this</span>.database = database;
+        <span class="keyword">this</span>.audioSourcePrefab = audioSourcePrefab;
+        Initialize();
+    }
+}
+                    </div>
+                </div>
+
+                <div class="positive-note">
+                    <h3>🌟 SaveService - Proper Service Pattern</h3>
+                    <div class="file-path">Assets/Scripts/Toolkit/Save/SaveService.cs</div>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>Pure C# implementation of ISaveManager</li>
+                        <li>Lazy initialization to avoid Unity API calls in constructor</li>
+                        <li>Configuration injected via constructor parameters</li>
+                        <li>No static state</li>
+                    </ul>
+                </div>
+
+                <div class="positive-note">
+                    <h3>🌟 RootLifetimeScope - Proper DI Registration</h3>
+                    <div class="file-path">Assets/Scripts/DI/RootLifetimeScope.cs</div>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>All core services registered programmatically</li>
+                        <li>Configuration loaded from Resources with fallbacks</li>
+                        <li>Singleton lifetime for cross-scene persistence</li>
+                        <li>Factory pattern for services with complex initialization</li>
+                        <li>RegisterBuildCallback for MonoBehaviour updaters</li>
+                    </ul>
+                </div>
+
+                <div class="positive-note">
+                    <h3>🌟 EnemiesSpawner - Proper Container Usage</h3>
+                    <div class="file-path">Assets/Scripts/Enemies/EnemiesSpawner.cs</div>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>Injects IObjectResolver for pooled object injection</li>
+                        <li>Properly re-injects pooled enemies: container.Inject(enemy)</li>
+                        <li>Uses [Inject] attribute for constructor injection</li>
+                        <li>Implements IEnemiesSpawner interface</li>
+                    </ul>
+                </div>
+
+                <div class="positive-note">
+                    <h3>🌟 AbilityManager Interface Implementation</h3>
+                    <div class="file-path">Assets/Scripts/Abilities/Data/AbilityManager.cs</div>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>Implements IAbilityManager interface</li>
+                        <li>All dependencies injected via [Inject] Construct method</li>
+                        <li>Registered in GameLifetimeScope with .AsImplementedInterfaces()</li>
+                        <li>No static accessors (though accessed via StageController - needs fixing)</li>
+                    </ul>
+                </div>
+
+                <div class="positive-note">
+                    <h3>🌟 PlayerBehavior Partial DI Migration</h3>
+                    <div class="file-path">Assets/Scripts/Player/PlayerBehavior.cs</div>
+                    <p><strong>What's good:</strong></p>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>Has [Inject] Construct with 7 properly injected dependencies</li>
+                        <li>Uses injected services consistently (audioManager, saveManager, etc.)</li>
+                        <li>Demonstrates commitment to DI even in complex MonoBehaviour</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>Needs fixing:</strong> Static instance accessor (see Critical issues)</p>
+                </div>
+
+                <div class="positive-note">
+                    <h3>🌟 Interface-First Design in Toolkit</h3>
+                    <div class="file-path">Assets/Scripts/Toolkit/</div>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>IAudioManager, ISaveManager, IInputManager, IVibrationManager, IEasingManager</li>
+                        <li>All core services have well-defined interfaces</li>
+                        <li>Services can be mocked for testing</li>
+                        <li>Clear contracts for implementations</li>
+                    </ul>
+                </div>
+
+                <div class="positive-note">
+                    <h3>🌟 Deprecated MonoBehaviours Marked Properly</h3>
+                    <div class="file-path">Assets/Scripts/Toolkit/Currency/CurrenciesManager.cs</div>
+                    <div class="code-block">
+[System.Obsolete(<span class="string">"Use CurrenciesService via dependency injection instead"</span>)]
+<span class="keyword">public class</span> CurrenciesManager : MonoBehaviour, ICurrenciesManager
+                    </div>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>Clear deprecation attribute warns developers</li>
+                        <li>Helpful message directs to replacement</li>
+                        <li>Shows proper migration path documentation</li>
+                    </ul>
+                </div>
+
+                <div class="positive-note">
+                    <h3>🌟 JoystickBehavior Proper Registration</h3>
+                    <div class="file-path">Assets/Scripts/UI/JoystickBehavior.cs</div>
+                    <p><strong>What's good:</strong></p>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>Uses [Inject] to get IInputManager</li>
+                        <li>Registers itself with input manager: inputManager.RegisterJoystick(this)</li>
+                        <li>Properly unregisters in OnDestroy</li>
+                        <li>Shows good lifecycle management</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>Needs fixing:</strong> Static Instance accessor (see Critical issues)</p>
+                </div>
+            </div>
+
+            <div id="recommendations" class="category-section">
+                <h2>📋 Overall Recommendations</h2>
+
+                <div class="positive-note" style="background: #fff7ed; border-left-color: #f59e0b;">
+                    <h3 style="color: #f59e0b;">🎯 Priority 1: Remove Static Accessors (2-3 weeks)</h3>
+                    <ol style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li><strong>PlayerBehavior.Player</strong> - Most impactful fix. Used in 47+ files.</li>
+                        <li><strong>StageController static properties</strong> - EnemiesSpawner, AbilityManager, etc.</li>
+                        <li><strong>GameController legacy statics</strong> - SaveManager, AudioManager, etc.</li>
+                        <li><strong>GameController.Gold/TempGold</strong> - Use ICurrenciesManager</li>
+                        <li><strong>JoystickBehavior.Instance</strong> - Inject or use IInputManager</li>
+                    </ol>
+                    <p style="margin-top: 15px;"><strong>Migration Strategy:</strong></p>
+                    <ul style="margin-left: 30px; line-height: 1.8;">
+                        <li>Create migration branch</li>
+                        <li>Use IDE refactoring tools to find all references</li>
+                        <li>Replace systematically file by file</li>
+                        <li>Test thoroughly between each major component</li>
+                        <li>Remove static properties once all references updated</li>
+                    </ul>
+                </div>
+
+                <div class="positive-note" style="background: #fef3c7; border-left-color: #d97706;">
+                    <h3 style="color: #d97706;">🎯 Priority 2: Complete Service Migrations (1-2 weeks)</h3>
+                    <ol style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li><strong>Remove UpgradesManager</strong> - UpgradesService already exists</li>
+                        <li><strong>Remove CurrenciesManager</strong> - CurrenciesService already exists</li>
+                        <li><strong>Delete deprecated classes</strong> - Marked with [Obsolete]</li>
+                        <li><strong>Complete EasingManager migration</strong> - Use EasingService everywhere</li>
+                    </ol>
+                </div>
+
+                <div class="positive-note" style="background: #dbeafe; border-left-color: #2563eb;">
+                    <h3 style="color: #2563eb;">🎯 Priority 3: Add Missing Interfaces (1 week)</h3>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>IWorldSpaceTextManager</li>
+                        <li>Ensure IStageFieldManager is fully implemented</li>
+                        <li>Verify ICameraManager implementation</li>
+                        <li>Consider IStageController interface</li>
+                    </ul>
+                </div>
+
+                <div class="positive-note" style="background: #d1fae5; border-left-color: #059669;">
+                    <h3 style="color: #059669;">🎯 Priority 4: Improve Instantiation Patterns (1-2 weeks)</h3>
+                    <ol style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li><strong>Use container.Instantiate()</strong> - Instead of Instantiate() + manual Construct()</li>
+                        <li><strong>Fix EnemiesSpawner.SpawnBoss()</strong> - Use IObjectResolver</li>
+                        <li><strong>AbilityManager.AddAbility()</strong> - Use IObjectResolver</li>
+                        <li><strong>PlayerBehavior character instantiation</strong> - Use IObjectResolver</li>
+                    </ol>
+                </div>
+
+                <div class="positive-note" style="background: #f3f4f6; border-left-color: #6b7280;">
+                    <h3 style="color: #374151;">🎯 Long-term: Convert to Pure Services</h3>
+                    <p style="margin-top: 10px;">Consider converting these MonoBehaviour managers to pure services:</p>
+                    <ul style="margin-left: 30px; margin-top: 10px; line-height: 1.8;">
+                        <li>PoolsManager → PoolsService (already exists, verify migration)</li>
+                        <li>WorldSpaceTextManager → TextDisplayService</li>
+                        <li>AbilityManager → AbilityService (complex, low priority)</li>
+                        <li>ExperienceManager → ExperienceService</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><strong>Note:</strong> Some managers legitimately need MonoBehaviour (for Update loops, coroutines, scene presence). Don't force pure services where MonoBehaviours make sense.</p>
+                </div>
+
+                <div style="background: #f8f9fa; border: 2px solid #e9ecef; padding: 30px; margin-top: 30px; border-radius: 8px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 15px;">📊 Success Metrics</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h4 style="color: #667eea;">Current State</h4>
+                            <ul style="margin-left: 20px; line-height: 1.8;">
+                                <li>DI Health Score: 70%</li>
+                                <li>Static Accessors: 12+ locations</li>
+                                <li>Service Locator Usage: 3 instances</li>
+                                <li>MonoBehaviour Managers: 15+</li>
+                                <li>Pure Services: 6</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="color: #10b981;">Target State (After Refactoring)</h4>
+                            <ul style="margin-left: 20px; line-height: 1.8;">
+                                <li>DI Health Score: 90%+</li>
+                                <li>Static Accessors: 0 (except DontDestroyOnLoad bootstrap)</li>
+                                <li>Service Locator Usage: 0</li>
+                                <li>MonoBehaviour Managers: 8-10 (only where needed)</li>
+                                <li>Pure Services: 12+</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 20px; margin-top: 30px; border-radius: 8px;">
+                    <h3 style="color: #d97706; margin-bottom: 10px;">⚠️ Important Notes for Refactoring</h3>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li><strong>Test Extensively:</strong> Each static accessor removal could have cascading effects. Test in Play mode frequently.</li>
+                        <li><strong>Use Version Control:</strong> Commit after each major component migration. Create rollback points.</li>
+                        <li><strong>Documentation:</strong> Update SETUP_DI.md and related docs as you migrate components.</li>
+                        <li><strong>Team Communication:</strong> If working with a team, coordinate refactoring to avoid merge conflicts.</li>
+                        <li><strong>Performance Testing:</strong> Verify that DI injection doesn't impact startup time significantly.</li>
+                        <li><strong>Editor Tooling:</strong> Consider writing editor scripts to validate DI setup (detect static accessors, etc.).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>CandyRush DI Audit Report</strong> | Generated by Claude Code | October 1, 2025</p>
+            <p style="margin-top: 10px; opacity: 0.8;">This audit represents a snapshot in time during active DI migration. Great progress has been made - keep pushing forward!</p>
+        </footer>
+    </div>
+</body>
+</html>

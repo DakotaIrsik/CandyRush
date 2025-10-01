@@ -1,4 +1,5 @@
 using OctoberStudio.Audio;
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
 using OctoberStudio.Input;
 using OctoberStudio.Upgrades;
@@ -6,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
@@ -18,6 +20,19 @@ namespace OctoberStudio.UI
         private Canvas canvas;
 
         private bool revivedAlready = false;
+
+        // Injected dependencies
+        private IUpgradesManager upgradesManager;
+        private IAudioManager audioManager;
+        private IInputManager inputManager;
+
+        [Inject]
+        public void Construct(IUpgradesManager upgradesManager, IAudioManager audioManager, IInputManager inputManager)
+        {
+            this.upgradesManager = upgradesManager;
+            this.audioManager = audioManager;
+            this.inputManager = inputManager;
+        }
 
         private void Awake()
         {
@@ -36,7 +51,7 @@ namespace OctoberStudio.UI
             canvasGroup.alpha = 0;
             canvasGroup.DoAlpha(1, 0.3f).SetUnscaledTime(true);
 
-            if (GameController.UpgradesManager.IsUpgradeAquired(UpgradeType.Revive) && !revivedAlready)
+            if (upgradesManager.IsUpgradeAquired(UpgradeType.Revive) && !revivedAlready)
             {
                 reviveButton.gameObject.SetActive(true);
 
@@ -47,7 +62,7 @@ namespace OctoberStudio.UI
                 EventSystem.current.SetSelectedGameObject(exitButton.gameObject);
             }
 
-            GameController.InputManager.onInputChanged += OnInputChanged;
+            inputManager.onInputChanged += OnInputChanged;
         }
 
         public void Hide(UnityAction onFinish)
@@ -57,30 +72,30 @@ namespace OctoberStudio.UI
                 onFinish?.Invoke();
             });
 
-            GameController.InputManager.onInputChanged -= OnInputChanged;
+            inputManager.onInputChanged -= OnInputChanged;
         }
 
         private void ReviveButtonClick()
         {
-            GameController.AudioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
+            audioManager.PlaySound(AudioService.BUTTON_CLICK_HASH);
             Hide(StageController.ResurrectPlayer);
             revivedAlready = true;
         }
 
         private void ExitButtonClick()
         {
-            GameController.AudioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
+            audioManager.PlaySound(AudioService.BUTTON_CLICK_HASH);
             Time.timeScale = 1;
             StageController.ReturnToMainMenu();
 
-            GameController.InputManager.onInputChanged -= OnInputChanged;
+            inputManager.onInputChanged -= OnInputChanged;
         }
 
         private void OnInputChanged(InputType prevInput, InputType inputType)
         {
             if (prevInput == InputType.UIJoystick)
             {
-                if (GameController.UpgradesManager.IsUpgradeAquired(UpgradeType.Revive) && !revivedAlready)
+                if (upgradesManager.IsUpgradeAquired(UpgradeType.Revive) && !revivedAlready)
                 {
                     EventSystem.current.SetSelectedGameObject(reviveButton.gameObject);
                 }

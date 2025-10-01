@@ -33,7 +33,7 @@ namespace OctoberStudio.Abilities
 
             KickBack = false;
 
-            GameController.AudioManager.PlaySound(BOOMERANG_THROW_HASH);
+            audioManager.PlaySound(BOOMERANG_THROW_HASH);
         }
 
         public void Disable()

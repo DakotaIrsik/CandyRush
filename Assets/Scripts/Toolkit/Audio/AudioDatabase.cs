@@ -37,10 +37,12 @@ namespace OctoberStudio.Audio
         [SerializeField] AudioClipData audioClip;
 
         private float lastTimePlayed;
+        private IAudioManager audioManager;
 
-        public void Init()
+        public void Init(IAudioManager audioManager = null)
         {
             lastTimePlayed = -1;
+            this.audioManager = audioManager;
         }
 
         public AudioSource Play(bool music = false, float volume = 1, float pitch = 1)
@@ -49,13 +51,19 @@ namespace OctoberStudio.Audio
             {
                 lastTimePlayed = Time.unscaledTime;
 
+                if (audioManager == null)
+                {
+                    Debug.LogError($"[SoundContainer] No AudioManager injected to play sound: {name}");
+                    return null;
+                }
+
                 if (music)
                 {
-                    return GameController.AudioManager.PlayMusic(audioClip);
+                    return audioManager.PlayMusic(audioClip);
                 }
                 else
                 {
-                    return GameController.AudioManager.PlaySound(audioClip, volume, pitch);
+                    return audioManager.PlaySound(audioClip, volume, pitch);
                 }
             }
 
@@ -73,10 +81,12 @@ namespace OctoberStudio.Audio
         [SerializeField] List<AudioClipData> audioClips;
 
         private float lastTimePlayed;
+        private IAudioManager audioManager;
 
-        public void Init()
+        public void Init(IAudioManager audioManager = null)
         {
             lastTimePlayed = -1;
+            this.audioManager = audioManager;
         }
 
         public void Play(bool music = false)
@@ -84,12 +94,19 @@ namespace OctoberStudio.Audio
             if (lastTimePlayed == 0 || Time.unscaledTime > lastTimePlayed + cooldown)
             {
                 var audioClip = audioClips.Random();
+
+                if (audioManager == null)
+                {
+                    Debug.LogError($"[SoundsContainer] No AudioManager injected to play sound");
+                    return;
+                }
+
                 if(music)
                 {
-                    GameController.AudioManager.PlayMusic(audioClip);
+                    audioManager.PlayMusic(audioClip);
                 } else
                 {
-                    GameController.AudioManager.PlaySound(audioClip);
+                    audioManager.PlaySound(audioClip);
                 }
                 lastTimePlayed = Time.unscaledTime;
             }

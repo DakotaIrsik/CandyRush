@@ -1,10 +1,12 @@
 using OctoberStudio.Abilities;
 using OctoberStudio.Audio;
+using OctoberStudio.Save;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
@@ -45,6 +47,17 @@ namespace OctoberStudio.UI
 
         public UnityAction<CharacterItemBehavior> onNavigationSelected;
 
+        // Injected dependencies
+        private ISaveManager saveManager;
+        private IAudioManager audioManager;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager, IAudioManager audioManager)
+        {
+            this.saveManager = saveManager;
+            this.audioManager = audioManager;
+        }
+
         private void Start()
         {
             upgradeButton.onClick.AddListener(SelectButtonClick);
@@ -54,14 +67,24 @@ namespace OctoberStudio.UI
         {
             if(charactersSave == null)
             {
-                charactersSave = GameController.SaveManager.GetSave<CharactersSave>("Characters");
-                charactersSave.onSelectedCharacterChanged += RedrawVisuals;
+                if (saveManager != null)
+                {
+                    charactersSave = saveManager.GetSave<CharactersSave>("Characters");
+                    charactersSave.onSelectedCharacterChanged += RedrawVisuals;
+                }
+                else
+                {
+                    // Debug.LogWarning("[CharacterItemBehavior] SaveManager not injected - will be properly configured in Game scene");
+                }
             }
 
             if (GoldCurrency == null)
             {
-                GoldCurrency = GameController.SaveManager.GetSave<CurrencySave>("gold");
-                GoldCurrency.onGoldAmountChanged += OnGoldAmountChanged;
+                if (saveManager != null)
+                {
+                    GoldCurrency = saveManager.GetSave<CurrencySave>("gold");
+                    GoldCurrency.onGoldAmountChanged += OnGoldAmountChanged;
+                }
             }
 
             startingAbilityObject.SetActive(characterData.HasStartingAbility);
@@ -91,12 +114,12 @@ namespace OctoberStudio.UI
 
         private void RedrawButton()
         {
-            if (charactersSave.HasCharacterBeenBought(CharacterId))
+            if (charactersSave?.HasCharacterBeenBought(CharacterId) == true)
             {
                 costLabel.gameObject.SetActive(false);
                 buttonText.gameObject.SetActive(true);
 
-                if(charactersSave.SelectedCharacterId == CharacterId)
+                if(charactersSave?.SelectedCharacterId == CharacterId)
                 {
                     upgradeButton.interactable = false;
                     upgradeButton.image.sprite = selectedButtonSprite;
@@ -118,7 +141,7 @@ namespace OctoberStudio.UI
 
                 costLabel.SetAmount(Data.Cost);
 
-                if (GoldCurrency.CanAfford(Data.Cost))
+                if (GoldCurrency?.CanAfford(Data.Cost) == true)
                 {
                     upgradeButton.interactable = true;
                     upgradeButton.image.sprite = enabledButtonSprite;
@@ -133,15 +156,15 @@ namespace OctoberStudio.UI
 
         private void SelectButtonClick()
         {
-            if (!charactersSave.HasCharacterBeenBought(CharacterId))
+            if (charactersSave?.HasCharacterBeenBought(CharacterId) == false)
             {
-                GoldCurrency.Withdraw(Data.Cost);
-                charactersSave.AddBoughtCharacter(CharacterId);
+                GoldCurrency?.Withdraw(Data.Cost);
+                charactersSave?.AddBoughtCharacter(CharacterId);
             }
 
-            charactersSave.SetSelectedCharacterId(CharacterId);
+            charactersSave?.SetSelectedCharacterId(CharacterId);
 
-            GameController.AudioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
+            audioManager.PlaySound(AudioService.BUTTON_CLICK_HASH);
 
             EventSystem.current.SetSelectedGameObject(upgradeButton.gameObject);
         }

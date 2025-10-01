@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
@@ -15,9 +16,17 @@ namespace OctoberStudio.UI
         [Space]
         [SerializeField] Button toggleButton;
 
+        private IAudioManager audioManager;
+
         public event UnityAction<bool> onChanged;
 
         public bool IsOn { get; private set; }
+
+        [Inject]
+        public void Construct(IAudioManager audioManager)
+        {
+            this.audioManager = audioManager;
+        }
 
         private void Awake()
         {
@@ -36,7 +45,7 @@ namespace OctoberStudio.UI
         {
             SetToggle(!IsOn);
 
-            GameController.AudioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
+            audioManager.PlaySound(AudioService.BUTTON_CLICK_HASH);
         }
 
         public void Select()

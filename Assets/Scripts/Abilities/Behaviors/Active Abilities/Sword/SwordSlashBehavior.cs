@@ -24,9 +24,9 @@ namespace OctoberStudio.Abilities
 
             slashCollider.enabled = true;
 
-            colliderCoroutine = EasingManager.DoAfter(0.1f, () => slashCollider.enabled = false);
+            colliderCoroutine = easingManager.DoAfter(0.1f, () => slashCollider.enabled = false);
 
-            waitingCoroutine = EasingManager.DoAfter(duration, () => {
+            waitingCoroutine = easingManager.DoAfter(duration, () => {
                 onFinished?.Invoke(this);
                 Disable();
             });

@@ -3,12 +3,24 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Events;
+using VContainer;
 
 namespace OctoberStudio.Easing
 {
+    /// <summary>
+    /// Legacy EasingManager MonoBehaviour - For backward compatibility
+    /// New code should use injected IEasingManager instead
+    /// </summary>
     public class EasingManager : MonoBehaviour
     {
         private static EasingManager instance;
+        private static IEasingManager easingService;
+
+        [Inject]
+        public void Construct(IEasingManager easingManager)
+        {
+            easingService = easingManager;
+        }
 
         public void Awake()
         {
@@ -17,41 +29,84 @@ namespace OctoberStudio.Easing
 
         public static IEasingCoroutine DoFloat(float from, float to, float duration, UnityAction<float> action, float delay = 0)
         {
+            if (easingService != null)
+            {
+                return easingService.DoFloat(from, to, duration, action, delay);
+            }
+            // Fallback to old implementation if service not available
             return new FloatEasingCoroutine(from, to, duration, delay, action);
         }
 
         public static IEasingCoroutine DoAfter(float seconds, UnityAction action, bool unscaledTime = false)
         {
+            if (easingService != null)
+            {
+                return easingService.DoAfter(seconds, action, unscaledTime);
+            }
+            // Fallback to old implementation
             return new WaitCoroutine(seconds, unscaledTime).SetOnFinish(action);
         }
 
         public static IEasingCoroutine DoAfter(Func<bool> condition)
         {
+            if (easingService != null)
+            {
+                return easingService.DoAfter(condition);
+            }
+            // Fallback to old implementation
             return new WaitForConditionCoroutine(condition);
         }
 
         public static IEasingCoroutine DoNextFrame()
         {
+            if (easingService != null)
+            {
+                return easingService.DoNextFrame();
+            }
+            // Fallback to old implementation
             return new NextFrameCoroutine();
         }
+
         public static IEasingCoroutine DoNextFrame(UnityAction action)
         {
+            if (easingService != null)
+            {
+                return easingService.DoNextFrame(action);
+            }
+            // Fallback to old implementation
             return new NextFrameCoroutine().SetOnFinish(action);
         }
 
         public static IEasingCoroutine DoNextFixedFrame()
         {
+            if (easingService != null)
+            {
+                return easingService.DoNextFixedFrame();
+            }
+            // Fallback to old implementation
             return new NextFixedFrameCoroutine();
         }
 
         public static Coroutine StartCustomCoroutine(IEnumerator coroutine)
         {
-            return instance.StartCoroutine(coroutine);
+            if (easingService != null)
+            {
+                return easingService.StartCustomCoroutine(coroutine);
+            }
+            // Fallback to old implementation
+            return instance?.StartCoroutine(coroutine);
         }
 
         public static void StopCustomCoroutine(Coroutine coroutine)
         {
-            if (instance != null) instance.StopCoroutine(coroutine);
+            if (easingService != null)
+            {
+                easingService.StopCustomCoroutine(coroutine);
+            }
+            else if (instance != null)
+            {
+                instance.StopCoroutine(coroutine);
+            }
         }
     }
 

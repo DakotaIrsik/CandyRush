@@ -187,7 +187,7 @@ namespace OctoberStudio.Enemy
 
                 spikeStartPoint.position = spikeStartPosition;
 
-                coroutine = EasingManager.DoAfter(1f, () =>
+                coroutine = easingManager.DoAfter(1f, () =>
                 {
                     for (int i = 0; i < singleSpikes.Count; i++)
                     {

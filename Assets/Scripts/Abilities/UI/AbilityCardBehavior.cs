@@ -4,6 +4,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.Abilities.UI
 {
@@ -43,6 +44,15 @@ namespace OctoberStudio.Abilities.UI
         public AbilityData Data { get; private set; }
 
         private Action<AbilityData> onAbilitySelected;
+
+        // Injected dependencies
+        private IAudioManager audioManager;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager)
+        {
+            this.audioManager = audioManager;
+        }
 
         private void Awake()
         {
@@ -113,7 +123,7 @@ namespace OctoberStudio.Abilities.UI
 
         private void OnAbilitySelected()
         {
-            GameController.AudioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
+            audioManager.PlaySound(AudioService.BUTTON_CLICK_HASH);
             onAbilitySelected?.Invoke(Data);
         }
     }

@@ -55,7 +55,7 @@ namespace OctoberStudio.Abilities
 
                     projectiles.Add(projectile);
 
-                    GameController.AudioManager.PlaySound(SOLAR_MAGNIFIER_LAUNCH_HASH);
+                    audioManager.PlaySound(SOLAR_MAGNIFIER_LAUNCH_HASH);
 
                     yield return new WaitForSeconds(AbilityLevel.TimeBetweenProjectiles);
                 }

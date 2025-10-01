@@ -1,13 +1,23 @@
 using OctoberStudio.Bossfight;
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
 using OctoberStudio.Extensions;
 using UnityEngine;
 using UnityEngine.Playables;
+using VContainer;
 
 namespace OctoberStudio.Timeline.Bossfight
 {
     public class BossBehavior : PlayableBehaviour
     {
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IEasingManager easingManager)
+        {
+            this.easingManager = easingManager;
+        }
+
         public BossType BossType { get; set; }
         public GameObject FencePrefab { get; set; }
         public bool ShouldSpawnChest { get; set; }
@@ -27,13 +37,13 @@ namespace OctoberStudio.Timeline.Bossfight
 
             StageController.GameScreen.ShowBossfightWarning();
 
-            EasingManager.DoAfter(WarningDuration, () => {
+            easingManager.DoAfter(WarningDuration, () => {
                 StageController.Director.Pause();
 
                 StageController.GameScreen.HideBossFightWarning();
 
                 // Doing it next frame because there still could be spawns during this one
-                EasingManager.DoNextFrame().SetOnFinish(StageController.EnemiesSpawner.KillEveryEnemy);
+                easingManager.DoNextFrame().SetOnFinish(StageController.EnemiesSpawner.KillEveryEnemy);
 
                 var bossSpawnPosition = StageController.FieldManager.SpawnFence(BossType, BossSpawnOffset);
 
@@ -42,7 +52,7 @@ namespace OctoberStudio.Timeline.Bossfight
                     StageController.FieldManager.RemovePropFromFence();
                 }
 
-                EasingManager.DoAfter(0.3f, () => 
+                easingManager.DoAfter(0.3f, () =>
                 {
                     var data = StageController.EnemiesSpawner.GetBossData(BossType);
                     StageController.GameScreen.ShowBossHealthBar(data);

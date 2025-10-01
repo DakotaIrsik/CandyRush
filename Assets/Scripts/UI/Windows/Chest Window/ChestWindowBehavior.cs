@@ -1,5 +1,6 @@
 using OctoberStudio.Abilities;
 using OctoberStudio.Audio;
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
 using OctoberStudio.Input;
 using OctoberStudio.UI.Chest;
@@ -9,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
@@ -68,7 +70,20 @@ namespace OctoberStudio.UI
         private float cacheMusicVolume;
         private AudioSource chestSound;
 
+        // Injected dependencies
+        private IAudioManager audioManager;
+        private IInputManager inputManager;
+        private ICurrenciesManager currenciesManager;
+
         public event UnityAction OnClosed;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager, IInputManager inputManager, ICurrenciesManager currenciesManager)
+        {
+            this.audioManager = audioManager;
+            this.inputManager = inputManager;
+            this.currenciesManager = currenciesManager;
+        }
 
         private void Awake()
         {
@@ -86,8 +101,12 @@ namespace OctoberStudio.UI
 
         public void OpenWindow(int tierId, List<AbilityData> abilities, List<AbilityData> selectedAbilities)
         {
-            cacheMusicVolume = GameController.Music.volume;
-            GameController.Music.DoVolume(0, 0.3f).SetUnscaledTime(true);
+            var currentMusic = audioManager.CurrentMusic;
+            if (currentMusic != null)
+            {
+                cacheMusicVolume = currentMusic.volume;
+                currentMusic.DoVolume(0, 0.3f).SetUnscaledTime(true);
+            }
 
             backgroundButton.gameObject.SetActive(true);
             EventSystem.current.SetSelectedGameObject(backgroundButton.gameObject);
@@ -120,9 +139,9 @@ namespace OctoberStudio.UI
             takeButton.gameObject.SetActive(false);
             takeButton.interactable = false;
 
-            GameController.InputManager.onInputChanged += OnInputChanged;
+            inputManager.onInputChanged += OnInputChanged;
 
-            GameController.AudioManager.PlaySound(CHEST_WINDOW_POPUP_HASH);
+            audioManager.PlaySound(CHEST_WINDOW_POPUP_HASH);
         }
 
         private IEnumerator CoinsCoroutine(int coinsAmount, float duration)
@@ -133,7 +152,7 @@ namespace OctoberStudio.UI
 
             yield return new WaitForSecondsRealtime(0.8f);
 
-            chestSound = GameController.AudioManager.PlaySound(CHEST_IN_PROGRESS_HASH);
+            chestSound = audioManager.PlaySound(CHEST_IN_PROGRESS_HASH);
 
             coinsParticle.PlayParticle();
 
@@ -206,16 +225,24 @@ namespace OctoberStudio.UI
 
         private void TakeButton()
         {
-            GameController.AudioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
+            audioManager.PlaySound(AudioService.BUTTON_CLICK_HASH);
 
-            GameController.TempGold.Deposit(coinsReward);
+            var tempGold = currenciesManager.GetCurrency("TempGold");
+            if (tempGold != null)
+            {
+                tempGold.Deposit(coinsReward);
+            }
 
             CloseWindow();
         }
 
         public void CloseWindow()
         {
-            GameController.Music.DoVolume(cacheMusicVolume, 0.3f).SetUnscaledTime(true);
+            var currentMusic = audioManager.CurrentMusic;
+            if (currentMusic != null)
+            {
+                currentMusic.DoVolume(cacheMusicVolume, 0.3f).SetUnscaledTime(true);
+            }
 
             windowRect.DoAnchorPosition(closedPosition, 0.3f).SetUnscaledTime(true).SetEasing(EasingType.SineIn).SetOnFinish(() =>
             {
@@ -225,7 +252,7 @@ namespace OctoberStudio.UI
                 OnClosed?.Invoke();
             });
 
-            GameController.InputManager.onInputChanged -= OnInputChanged;
+            inputManager.onInputChanged -= OnInputChanged;
         }
 
         private void OnInputChanged(InputType prevInput, InputType inputType)

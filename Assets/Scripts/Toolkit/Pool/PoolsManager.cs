@@ -1,9 +1,12 @@
+using OctoberStudio.DI;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
+using VContainer.Unity;
 
 namespace OctoberStudio.Pool
 {
-    public class PoolsManager : MonoBehaviour
+    public class PoolsManager : MonoBehaviour, IPoolsManager
     {
         [SerializeField] List<PoolData> preloadedPools;
 
@@ -65,6 +68,75 @@ namespace OctoberStudio.Pool
             if (pool != null) return pool.GetEntity<T>();
 
             return null;
+        }
+
+        // IPoolsManager interface implementation
+        public T GetFromPool<T>(PoolType type) where T : Component
+        {
+            string poolName = GetPoolName(type);
+            return GetEntity<T>(poolName);
+        }
+
+        public void ReturnToPool<T>(T item) where T : Component
+        {
+            // In this implementation, entities are automatically returned to pool
+            // when their gameObject is disabled. This is typical for Unity object pooling.
+            if (item != null && item.gameObject != null)
+            {
+                item.gameObject.SetActive(false);
+            }
+        }
+
+        private string GetPoolName(PoolType type)
+        {
+            // Map PoolType enum to string names used by the existing pool system
+            return type switch
+            {
+                PoolType.Enemy => "Enemy",
+                PoolType.Projectile => "Projectile",
+                PoolType.Drop => "Drop",
+                PoolType.Effect => "Effect",
+                PoolType.UI => "UI",
+                PoolType.Audio => "Audio",
+                PoolType.Custom => "Custom",
+                _ => type.ToString()
+            };
+        }
+
+        // DI-aware pool methods
+        public T GetFromPoolWithInjection<T>(PoolType type) where T : Component
+        {
+            var entity = GetFromPool<T>(type);
+            if (entity != null)
+            {
+                // Perform dependency injection on the pooled entity
+                var lifetimeScope = VContainer.Unity.LifetimeScope.Find<LifetimeScope>();
+                if (lifetimeScope != null)
+                {
+                    lifetimeScope.Container.InjectGameObject(entity.gameObject);
+                }
+            }
+            return entity;
+        }
+
+        public GameObject GetEntityWithInjection(string name)
+        {
+            return GetEntityWithInjection(name.GetHashCode());
+        }
+
+        public GameObject GetEntityWithInjection(int hash)
+        {
+            var entity = GetEntity(hash);
+            if (entity != null)
+            {
+                // Perform dependency injection on the pooled entity
+                var lifetimeScope = VContainer.Unity.LifetimeScope.Find<LifetimeScope>();
+                if (lifetimeScope != null)
+                {
+                    lifetimeScope.Container.InjectGameObject(entity);
+                }
+            }
+            return entity;
         }
 
         [System.Serializable]

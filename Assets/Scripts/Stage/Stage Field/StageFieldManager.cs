@@ -1,4 +1,6 @@
 using OctoberStudio.Bossfight;
+using OctoberStudio.DI;
+using OctoberStudio.Easing;
 using OctoberStudio.Extensions;
 using OctoberStudio.Pool;
 using OctoberStudio.Timeline.Bossfight;
@@ -6,14 +8,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Playables;
+using VContainer;
 
 namespace OctoberStudio
 {
-    public class StageFieldManager : MonoBehaviour
+    public class StageFieldManager : MonoBehaviour, IStageFieldManager
     {
-        private static StageFieldManager instance;
-
         [SerializeField] BossfightDatabase bossfightDatabase;
+
+        private ICameraManager cameraManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(ICameraManager cameraManager, IEasingManager easingManager)
+        {
+            this.cameraManager = cameraManager;
+            this.easingManager = easingManager;
+        }
 
         public StageType StageType { get; private set; }
         public GameObject BackgroundPrefab { get; private set; }
@@ -22,11 +33,6 @@ namespace OctoberStudio
 
         private IFieldBehavior field;
         private Dictionary<BossType, BossFenceBehavior> fences;
-
-        private void Awake()
-        {
-            instance = this;
-        }
 
         public void Init(StageData stageData, PlayableDirector director)
         {
@@ -37,6 +43,9 @@ namespace OctoberStudio
                 case StageType.HorizontalEndless: field = new HorizontalFieldBehavior(); break;
                 case StageType.Rect: field = new RectFieldBehavior(); break;
             }
+
+            // Manually inject dependencies into field behavior
+            field.Construct(cameraManager, easingManager);
 
             field.Init(stageData.StageFieldData, stageData.SpawnProp);
 
@@ -94,12 +103,12 @@ namespace OctoberStudio
             {
                 isFenceValid = Fence.ValidatePosition(position, offset);
             }
-            return instance.field.ValidatePosition(position) && isFenceValid;
+            return field.ValidatePosition(position) && isFenceValid;
         }
 
         public Vector2 GetRandomPositionOnBorder()
         {
-            return instance.field.GetRandomPositionOnBorder();
+            return field.GetRandomPositionOnBorder();
         }
 
         public bool IsPointOutsideFieldRight(Vector2 point, out float distance)

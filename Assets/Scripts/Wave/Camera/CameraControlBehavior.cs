@@ -18,14 +18,17 @@ namespace OctoberStudio.Timeline
 
         public override void OnBehaviourPlay(Playable playable, FrameData info)
         {
-            pixelPerfectCamera = Camera.main.GetComponent<PixelPerfectCamera>();
+            // Use Camera.main directly since PlayableBehaviour can't use DI
+            var mainCamera = Camera.main;
+
+            pixelPerfectCamera = mainCamera.GetComponent<PixelPerfectCamera>();
 
             if(pixelPerfectCamera == null)
             {
-                startCameraSize = Camera.main.orthographicSize;
+                startCameraSize = mainCamera.orthographicSize;
             } else
             {
-                startCameraSize = Camera.main.orthographicSize;
+                startCameraSize = mainCamera.orthographicSize;
                 startPPU = pixelPerfectCamera.assetsPPU;
 
                 targetPPU = (int)(pixelPerfectCamera.assetsPPU / (TargetCameraSize / startCameraSize));

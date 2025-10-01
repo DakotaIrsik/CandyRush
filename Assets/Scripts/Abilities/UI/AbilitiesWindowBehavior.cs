@@ -1,12 +1,15 @@
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
 using OctoberStudio.Extensions;
 using OctoberStudio.Input;
 using OctoberStudio.Pool;
+using OctoberStudio.Save;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.Abilities.UI
 {
@@ -34,10 +37,27 @@ namespace OctoberStudio.Abilities.UI
         public UnityAction onPanelClosed;
         public UnityAction onPanelStartedClosing;
 
+        // Injected dependencies
+        private ISaveManager saveManager;
+        private IInputManager inputManager;
+        private IAbilityManager abilityManager;
+        private IEasingManager easingManager;
+        private VContainer.IObjectResolver container;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager, IInputManager inputManager, IAbilityManager abilityManager, IEasingManager easingManager, VContainer.IObjectResolver container)
+        {
+            this.saveManager = saveManager;
+            this.inputManager = inputManager;
+            this.abilityManager = abilityManager;
+            this.easingManager = easingManager;
+            this.container = container;
+        }
+
         public void Init()
         {
             cardsPool = new PoolComponent<AbilityCardBehavior>(abilityCardPrefab, 3);
-            abilitiesSave = GameController.SaveManager.GetSave<AbilitiesSave>("Abilities Save");
+            abilitiesSave = saveManager.GetSave<AbilitiesSave>("Abilities Save");
 
             panelPosition = panelRect.anchoredPosition;
             panelRect.anchoredPosition = panelHiddenPosition;
@@ -57,6 +77,9 @@ namespace OctoberStudio.Abilities.UI
             for (int i = 0; i < abilities.Count; i++)
             {
                 var card = cardsPool.GetEntity();
+
+                // Inject dependencies into the pooled card
+                container.Inject(card);
 
                 card.transform.SetParent(abilitiesHolder);
                 card.transform.ResetLocal();
@@ -88,7 +111,7 @@ namespace OctoberStudio.Abilities.UI
                 cards[i].Show(i * 0.1f + 0.15f);
             }
 
-            EasingManager.DoNextFrame(() => {
+            easingManager.DoNextFrame(() => {
                 for (int i = 0; i < cards.Count; i++)
                 {
                     var navigation = new Navigation();
@@ -103,7 +126,7 @@ namespace OctoberStudio.Abilities.UI
                 EventSystem.current.SetSelectedGameObject(cards[0].gameObject);
             });
 
-            GameController.InputManager.onInputChanged += OnInputChanged;
+            inputManager.onInputChanged += OnInputChanged;
         }
 
         public void Hide()
@@ -126,7 +149,7 @@ namespace OctoberStudio.Abilities.UI
                 onPanelClosed?.Invoke();
             });
 
-            GameController.InputManager.onInputChanged -= OnInputChanged;
+            inputManager.onInputChanged -= OnInputChanged;
         }
 
         private void OnInputChanged(InputType prevInput, InputType inputType)
@@ -139,7 +162,7 @@ namespace OctoberStudio.Abilities.UI
 
         private void OnAbilitySelected(AbilityData ability)
         {
-            if (StageController.AbilityManager.IsAbilityAquired(ability.AbilityType))
+            if (abilityManager.IsAbilityAquired(ability.AbilityType))
             {
                 var level = abilitiesSave.GetAbilityLevel(ability.AbilityType);
 
@@ -153,7 +176,7 @@ namespace OctoberStudio.Abilities.UI
                 ability.Upgrade(level);
             } else
             {
-                StageController.AbilityManager.AddAbility(ability);
+                abilityManager.AddAbility(ability);
             }
 
             Hide();

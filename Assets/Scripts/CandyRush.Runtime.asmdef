@@ -5,7 +5,9 @@
         "Unity.InputSystem",
         "Unity.Timeline",
         "Unity.TextMeshPro",
-        "Unity.2D.PixelPerfect"
+        "Unity.2D.PixelPerfect",
+        "VContainer",
+        "VContainer.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

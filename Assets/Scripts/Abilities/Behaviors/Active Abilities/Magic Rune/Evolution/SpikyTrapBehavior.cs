@@ -1,11 +1,22 @@
+using OctoberStudio.Audio;
 using OctoberStudio.Easing;
 using OctoberStudio.Pool;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.Abilities
 {
     public class SpikyTrapBehavior : MonoBehaviour
     {
+        private IAudioManager audioManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager, IEasingManager easingManager)
+        {
+            this.audioManager = audioManager;
+            this.easingManager = easingManager;
+        }
         public static readonly int SPIKY_TRAP_EXPLOSION_HASH = "Spiky Trap Explosion".GetHashCode();
 
         [SerializeField] CircleCollider2D mineTriggerCollider;
@@ -38,8 +49,8 @@ namespace OctoberStudio.Abilities
 
             mineVisuals.SetActive(true);
 
-            EasingManager.DoAfter(0.2f, () => mineTriggerCollider.enabled = true);
-            lifetimeCoroutine = EasingManager.DoAfter(stage.MineLifetime, Explode);
+            easingManager.DoAfter(0.2f, () => mineTriggerCollider.enabled = true);
+            lifetimeCoroutine = easingManager.DoAfter(stage.MineLifetime, Explode);
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
@@ -83,9 +94,9 @@ namespace OctoberStudio.Abilities
 
             lifetimeCoroutine.StopIfExists();
 
-            GameController.AudioManager.PlaySound(SPIKY_TRAP_EXPLOSION_HASH);
+            audioManager.PlaySound(SPIKY_TRAP_EXPLOSION_HASH);
 
-            EasingManager.DoAfter(1f, () => gameObject.SetActive(false));
+            easingManager.DoAfter(1f, () => gameObject.SetActive(false));
         }
     }
 }

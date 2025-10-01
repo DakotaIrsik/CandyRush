@@ -12,7 +12,7 @@ namespace OctoberStudio.Abilities
         {
             base.Init(data, stageId);
 
-            GameController.AudioManager.PlaySound(MACE_BALL_LAUNCH_HASH);
+            audioManager.PlaySound(MACE_BALL_LAUNCH_HASH);
 
             boulderProjectileBehavior.Direction = (Vector2.up + Vector2.right).normalized;
         }

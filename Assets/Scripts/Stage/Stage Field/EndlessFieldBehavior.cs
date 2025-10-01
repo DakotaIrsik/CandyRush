@@ -27,6 +27,7 @@ namespace OctoberStudio
 
             var row = new List<StageChunkBehavior>();
             var chunk = pools.Random().GetEntity();
+            chunk.Construct(cameraManager);
 
             chunk.transform.position = Vector3.zero;
             chunk.transform.rotation = Quaternion.identity;
@@ -36,7 +37,7 @@ namespace OctoberStudio
             chunks.Add(row);
 
             wait = false;
-            EasingManager.DoNextFrame().SetOnFinish(() => wait = true);
+            easingManager.DoNextFrame().SetOnFinish(() => wait = true);
         }
 
         public override void Update()
@@ -68,6 +69,7 @@ namespace OctoberStudio
                 for (int i = 0; i < columnCounts; i++)
                 {
                     var chunk = pools.Random().GetEntity();
+                    chunk.Construct(cameraManager);
                     var chunkBellow = chunks[0][i];
 
                     chunk.transform.position = chunkBellow.transform.position + Vector3.up * chunk.Size.y;
@@ -94,6 +96,7 @@ namespace OctoberStudio
                 for (int i = 0; i < columnCounts; i++)
                 {
                     var chunk = pools.Random().GetEntity();
+                    chunk.Construct(cameraManager);
                     var chunkOnTop = chunks[^1][i];
 
                     chunk.transform.position = chunkOnTop.transform.position + Vector3.down * chunk.Size.y;
@@ -118,6 +121,7 @@ namespace OctoberStudio
                     var row = chunks[i];
 
                     var chunk = pools.Random().GetEntity();
+                    chunk.Construct(cameraManager);
                     var chunkOnRight = chunks[i][0];
 
                     chunk.transform.position = chunkOnRight.transform.position + Vector3.left * chunk.Size.x;
@@ -140,6 +144,7 @@ namespace OctoberStudio
                     var row = chunks[i];
 
                     var chunk = pools.Random().GetEntity();
+                    chunk.Construct(cameraManager);
                     var chunkOnLeft = chunks[i][^1];
 
                     chunk.transform.position = chunkOnLeft.transform.position + Vector3.right * chunk.Size.x;

@@ -49,7 +49,7 @@ namespace OctoberStudio.Enemy
 
             if (Lifetime > 0)
             {
-                EasingManager.DoAfter(Lifetime, Hide);
+                easingManager.DoAfter(Lifetime, Hide);
             }
         }
 

@@ -18,7 +18,8 @@ namespace OctoberStudio.Drop
             var clampedGold = Mathf.FloorToInt(gold);
             leftoverDifference = gold - clampedGold;
 
-            GameController.TempGold.Deposit(clampedGold);
+            var tempGold = currenciesManager.GetCurrency("TempGold");
+            tempGold.Deposit(clampedGold);
         }
     }
 }

@@ -52,7 +52,7 @@ namespace OctoberStudio.Abilities
                     projectiles.Add(projectile);
                 }
 
-                GameController.AudioManager.PlaySound(TWIN_DAGGERS_HASH);
+                audioManager.PlaySound(TWIN_DAGGERS_HASH);
 
                 yield return new WaitForSeconds(AbilityLevel.AbilityCooldown * PlayerBehavior.Player.CooldownMultiplier);
             }

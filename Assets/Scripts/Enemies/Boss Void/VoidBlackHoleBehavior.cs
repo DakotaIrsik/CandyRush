@@ -4,12 +4,21 @@ using OctoberStudio.Pool;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.Enemy
 {
     public class VoidBlackHoleBehavior : MonoBehaviour
     {
         protected static readonly int HIDE_TRIGGER = Animator.StringToHash("Hide");
+
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IEasingManager easingManager)
+        {
+            this.easingManager = easingManager;
+        }
 
         [SerializeField] protected Animator animator;
         [SerializeField] protected SpriteRenderer spriteRenderer;
@@ -45,7 +54,7 @@ namespace OctoberStudio.Enemy
         {
             chargeParticle.Play();
 
-            EasingManager.DoAfter(0.6f, () =>
+            easingManager.DoAfter(0.6f, () =>
             {
                 for(int i = 0; i < 10; i++)
                 {

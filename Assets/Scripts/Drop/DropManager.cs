@@ -1,3 +1,4 @@
+using OctoberStudio.DI;
 using OctoberStudio.Drop;
 using OctoberStudio.Easing;
 using OctoberStudio.Pool;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace OctoberStudio
 {
-    public class DropManager : MonoBehaviour
+    public class DropManager : MonoBehaviour, IDropManager
     {
         [SerializeField] DropDatabase database;
 
@@ -102,6 +103,19 @@ namespace OctoberStudio
             dropList.Add(drop);
 
             lastTimeDropped[dropType] = Time.time;
+        }
+
+        // IDropManager interface implementation
+        public void SpawnDrop(DropType type, Vector2 position)
+        {
+            Drop(type, position);
+        }
+
+        public void SpawnRandomDrop(Vector2 position)
+        {
+            var randomIndex = Random.Range(0, database.GemsCount);
+            var randomDropType = database.GetGemData(randomIndex).DropType;
+            Drop(randomDropType, position);
         }
     }
 }

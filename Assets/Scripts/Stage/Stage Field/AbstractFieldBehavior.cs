@@ -1,12 +1,25 @@
+using OctoberStudio.DI;
+using OctoberStudio.Easing;
 using OctoberStudio.Pool;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio
 {
     public abstract class AbstractFieldBehavior : IFieldBehavior
     {
+        // Injected dependencies available to all derived classes
+        protected ICameraManager cameraManager;
+        protected IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(ICameraManager cameraManager, IEasingManager easingManager)
+        {
+            this.cameraManager = cameraManager;
+            this.easingManager = easingManager;
+        }
         public StageFieldData Data { get; private set; }
 
         private bool spawnProp;

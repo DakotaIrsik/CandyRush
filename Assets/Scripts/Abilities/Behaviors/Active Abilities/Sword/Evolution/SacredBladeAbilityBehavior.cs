@@ -79,7 +79,7 @@ namespace OctoberStudio.Abilities
 
                     waves.Add(wave);
 
-                    GameController.AudioManager.PlaySound(SACRED_BLADE_ATTACK_HASH);
+                    audioManager.PlaySound(SACRED_BLADE_ATTACK_HASH);
 
                     yield return new WaitForSeconds(AbilityLevel.TimeBetweenSlashes * PlayerBehavior.Player.CooldownMultiplier);
                 }

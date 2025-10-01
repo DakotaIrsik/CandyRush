@@ -1,12 +1,28 @@
+using OctoberStudio.Audio;
+using OctoberStudio.Currency;
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
 using OctoberStudio.Pool;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.Drop
 {
     public abstract class DropBehavior : MonoBehaviour
     {
+        protected IEasingManager easingManager;
+        protected IAudioManager audioManager;
+        protected ICurrenciesManager currenciesManager;
+
+        [Inject]
+        public void Construct(IEasingManager easingManager, IAudioManager audioManager, ICurrenciesManager currenciesManager)
+        {
+            this.easingManager = easingManager;
+            this.audioManager = audioManager;
+            this.currenciesManager = currenciesManager;
+        }
+
         [SerializeField] GameObject pickUpParticle;
         [SerializeField] float particleDisableDelay;
         [SerializeField] string pickUpSoundName;
@@ -44,11 +60,12 @@ namespace OctoberStudio.Drop
                 particle.transform.position = transform.position;
                 particle.Play();
 
-                EasingManager.DoAfter(particleDisableDelay, () => { particle.gameObject.SetActive(false); });
+                easingManager.DoAfter(particleDisableDelay, () => { particle.gameObject.SetActive(false); });
             }
 
-            GameController.AudioManager.PlaySound(pickUpSoundHash);
+            audioManager.PlaySound(pickUpSoundHash);
         }
+
 
         private void OnDestroy()
         {

@@ -9,6 +9,8 @@ namespace OctoberStudio.Audio
         float SoundVolume { get; set; }
         float MusicVolume { get; set; }
 
+        AudioSource CurrentMusic { get; }
+
         AudioSource PlaySound(AudioClip clip, float volume = 1, float pitch = 1);
         AudioSource PlaySound(int hash, float volume = 1, float pitch = 1);
         AudioSource PlaySound(AudioClipData clipData, float volume = 1, float pitch = 1);

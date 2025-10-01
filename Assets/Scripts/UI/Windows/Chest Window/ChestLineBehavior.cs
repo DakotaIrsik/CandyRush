@@ -1,4 +1,5 @@
 using OctoberStudio.Abilities;
+using OctoberStudio.Audio;
 using OctoberStudio.Easing;
 using OctoberStudio.Extensions;
 using OctoberStudio.Pool;
@@ -6,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.UI.Chest
 {
@@ -41,6 +43,15 @@ namespace OctoberStudio.UI.Chest
         private IEasingCoroutine scaleCoroutine;
 
         private float pitch;
+        private IAudioManager audioManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager, IEasingManager easingManager)
+        {
+            this.audioManager = audioManager;
+            this.easingManager = easingManager;
+        }
 
         private void Awake()
         {
@@ -72,7 +83,7 @@ namespace OctoberStudio.UI.Chest
                 scrollCoroutine = StartCoroutine(ScrollCoroutine());
             });
 
-            stopCoroutine = EasingManager.DoAfter(animationDuration, StopScrolling, true);
+            stopCoroutine = easingManager.DoAfter(animationDuration, StopScrolling, true);
         }
 
         private void StopScrolling()
@@ -89,11 +100,11 @@ namespace OctoberStudio.UI.Chest
             abilityImagesPool.DisableAllEntities();
 
             sparkObject.SetActive(true);
-            EasingManager.DoAfter(0.2f, () => sparkObject.SetActive(false), true);
+            easingManager.DoAfter(0.2f, () => sparkObject.SetActive(false), true);
 
             abilityPreview.Show();
 
-            GameController.AudioManager.PlaySound(CHEST_ABILITY_POPUP_HASH, 1, pitch);
+            audioManager.PlaySound(CHEST_ABILITY_POPUP_HASH, 1, pitch);
         }
 
         private IEnumerator ScrollCoroutine()

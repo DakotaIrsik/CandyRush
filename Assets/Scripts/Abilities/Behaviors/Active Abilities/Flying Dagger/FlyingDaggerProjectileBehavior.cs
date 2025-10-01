@@ -31,12 +31,12 @@ namespace OctoberStudio.Abilities
 
             rigidBody.AddForce(force, ForceMode2D.Impulse);
 
-            movementCoroutine = EasingManager.DoAfter(ProjectileLifetime, () => { 
+            movementCoroutine = easingManager.DoAfter(ProjectileLifetime, () => {
                 onFinished?.Invoke(this);
                 Disable();
             });
 
-            GameController.AudioManager.PlaySound(FLYING_DAGGER_LAUNCH_HASH);
+            audioManager.PlaySound(FLYING_DAGGER_LAUNCH_HASH);
         }
 
         public void Disable()

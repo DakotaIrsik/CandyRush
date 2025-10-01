@@ -38,7 +38,7 @@ namespace OctoberStudio.Abilities
                 SpawnProjectile(0);
                 SpawnProjectile(180);
 
-                GameController.AudioManager.PlaySound(RECOILER_LAUNCH_HASH);
+                audioManager.PlaySound(RECOILER_LAUNCH_HASH);
 
                 yield return new WaitForSeconds(AbilityLevel.AbilityCooldown * PlayerBehavior.Player.CooldownMultiplier);
             }

@@ -28,7 +28,7 @@ namespace OctoberStudio.Enemy
 
             projectileCollider.enabled = false;
 
-            Vector3 upPosition = transform.position.SetY(CameraManager.TopBound + 2f);
+            Vector3 upPosition = transform.position.SetY(cameraManager.TopBound + 2f);
 
             easingCoroutine = transform.DoPosition(upPosition, 0.3f).SetEasing(EasingType.SineIn).SetOnFinish(SwordHiddlen);
         }       
@@ -55,7 +55,7 @@ namespace OctoberStudio.Enemy
 
             Vector2 targetPosition = warningCircle.transform.position;
 
-            transform.position = targetPosition.SetY(CameraManager.TopBound + 2f);
+            transform.position = targetPosition.SetY(cameraManager.TopBound + 2f);
 
             visuals.gameObject.SetActive(true);
 
@@ -71,7 +71,7 @@ namespace OctoberStudio.Enemy
                 warningCircle.gameObject.SetActive(false);
                 warningCircle = null;
 
-                easingCoroutine = EasingManager.DoAfter(0.3f, () => projectileCollider.enabled = false);
+                easingCoroutine = easingManager.DoAfter(0.3f, () => projectileCollider.enabled = false);
             });
 
             yield return new WaitForSeconds(2);

@@ -1,11 +1,20 @@
+using OctoberStudio.DI;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio
 {
     public class StageChunkBehavior : MonoBehaviour
     {
+        private ICameraManager cameraManager;
+
+        [Inject]
+        public void Construct(ICameraManager cameraManager)
+        {
+            this.cameraManager = cameraManager;
+        }
         [SerializeField] SpriteRenderer sprite;
         public Vector2 Size => sprite.size;
         public bool IsVisible => sprite.isVisible;
@@ -15,10 +24,10 @@ namespace OctoberStudio
         public float TopBound => transform.position.y + Size.y / 2;
         public float BottomBound => transform.position.y - Size.y / 2;
 
-        public bool HasEmptyLeft => LeftBound > CameraManager.LeftBound;
-        public bool HasEmptyRight => RightBound < CameraManager.RightBound;
-        public bool HasEmptyTop => TopBound < CameraManager.TopBound;
-        public bool HasEmptyBottom => BottomBound > CameraManager.BottomBound;
+        public bool HasEmptyLeft => LeftBound > cameraManager.LeftBound;
+        public bool HasEmptyRight => RightBound < cameraManager.RightBound;
+        public bool HasEmptyTop => TopBound < cameraManager.TopBound;
+        public bool HasEmptyBottom => BottomBound > cameraManager.BottomBound;
 
         private List<Transform> borders = new List<Transform>();
         private List<PropBehavior> prop = new List<PropBehavior>();    

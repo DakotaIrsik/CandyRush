@@ -1,3 +1,5 @@
+using OctoberStudio.DI;
+using OctoberStudio.Easing;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,6 +8,7 @@ namespace OctoberStudio
 {
     public interface IFieldBehavior
     {
+        void Construct(ICameraManager cameraManager, IEasingManager easingManager);
         void Init(StageFieldData stageFieldData, bool spawnProp);
         void Update();
         void Clear();

@@ -1,8 +1,10 @@
+using OctoberStudio.Save;
 using OctoberStudio.UI;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using VContainer;
 
 namespace OctoberStudio.Input
 {
@@ -19,12 +21,21 @@ namespace OctoberStudio.Input
 
         private InputSave save;
 
-        public InputType ActiveInput { get => save.ActiveInput; private set => save.ActiveInput = value; }
+        public InputType ActiveInput { get => save?.ActiveInput ?? InputType.UIJoystick; private set { if (save != null) save.ActiveInput = value; } }
         public Vector2 MovementValue { get; private set; }
 
         public JoystickBehavior Joystick { get; private set; }
 
         public event UnityAction<InputType, InputType> onInputChanged;
+
+        // Injected dependencies
+        private ISaveManager saveManager;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager)
+        {
+            this.saveManager = saveManager;
+        }
 
         private void Awake()
         {
@@ -38,10 +49,12 @@ namespace OctoberStudio.Input
 
             DontDestroyOnLoad(gameObject);
 
-            GameController.RegisterInputManager(this);
-
             inputAsset = new InputAsset();
+        }
 
+        private void Start()
+        {
+            // Initialize after VContainer has injected dependencies
             Init();
         }
 
@@ -57,7 +70,15 @@ namespace OctoberStudio.Input
 
         public void Init()
         {
-            save = GameController.SaveManager.GetSave<InputSave>("Input");
+            // Check if dependencies are available (VContainer injection)
+            if (saveManager == null)
+            {
+                Debug.LogWarning("[InputManager] SaveManager dependency not injected - disabling InputManager in favor of pure DI services");
+                gameObject.SetActive(false);
+                return;
+            }
+
+            save = saveManager.GetSave<InputSave>("Input");
 
             if(Gamepad.current != null)
             {

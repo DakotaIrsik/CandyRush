@@ -58,7 +58,7 @@ namespace OctoberStudio.Abilities
             {
                 lastTimeSound = Time.time;
 
-                GameController.AudioManager.PlaySound(GUARDIAN_EYE_HASH);
+                audioManager.PlaySound(GUARDIAN_EYE_HASH);
             }
         }
 

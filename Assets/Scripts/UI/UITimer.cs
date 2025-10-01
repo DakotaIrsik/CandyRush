@@ -1,7 +1,9 @@
 using OctoberStudio.Easing;
+using OctoberStudio.Save;
 using System;
 using TMPro;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
@@ -9,13 +11,19 @@ namespace OctoberStudio.UI
     {
         [SerializeField] TMP_Text timerText;
 
+        private ISaveManager saveManager;
         IEasingCoroutine alphaCoroutine;
-
         StageSave stageSave;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager)
+        {
+            this.saveManager = saveManager;
+        }
 
         private void Awake()
         {
-            stageSave = GameController.SaveManager.GetSave<StageSave>("Stage");
+            stageSave = saveManager.GetSave<StageSave>("Stage");
         }
 
         private void Update()

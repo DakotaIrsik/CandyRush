@@ -82,6 +82,7 @@ Candy Rush Documentation (1l_EQ8dg-jEw-qt8caFYc7xrOiOc_6WLF)
 3. **Document Changes**: Update this file when configuration structure changes
 4. **Version Control**: Commit configuration changes to git
 5. **Backup**: Keep Google Drive backups of critical configurations
+6. **CRITICAL**: NEVER create files named "nul" - this destroys git stashes and breaks Windows file system operations
 
 ## Troubleshooting
 

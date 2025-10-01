@@ -1,10 +1,14 @@
 using OctoberStudio.Audio;
+using OctoberStudio.DI;
+using OctoberStudio.Save;
 using OctoberStudio.UI;
+using OctoberStudio.Upgrades;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.Upgrades.UI
 {
@@ -37,6 +41,19 @@ namespace OctoberStudio.Upgrades.UI
 
         public UnityAction<UpgradeItemBehavior> onNavigationSelected;
 
+        // Injected dependencies
+        private ISaveManager saveManager;
+        private IUpgradesManager upgradesManager;
+        private IAudioManager audioManager;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager, IUpgradesManager upgradesManager, IAudioManager audioManager)
+        {
+            this.saveManager = saveManager;
+            this.upgradesManager = upgradesManager;
+            this.audioManager = audioManager;
+        }
+
         private void Start()
         {
             upgradeButton.onClick.AddListener(UpgradeButtonClick);
@@ -46,8 +63,15 @@ namespace OctoberStudio.Upgrades.UI
         {
             if(GoldCurrency == null)
             {
-                GoldCurrency = GameController.SaveManager.GetSave<CurrencySave>("gold");
-                GoldCurrency.onGoldAmountChanged += OnGoldAmountChanged;
+                if (saveManager != null)
+                {
+                    GoldCurrency = saveManager.GetSave<CurrencySave>("gold");
+                    GoldCurrency.onGoldAmountChanged += OnGoldAmountChanged;
+                }
+                else
+                {
+                    // Debug.LogWarning("[UpgradeItemBehavior] SaveManager not injected - will be properly configured in Game scene");
+                }
             }
 
             Data = data;
@@ -91,7 +115,7 @@ namespace OctoberStudio.Upgrades.UI
                 var level = Data.GetLevel(UpgradeLevelId);
                 costLabel.SetAmount(level.Cost);
 
-                if (GoldCurrency.CanAfford(level.Cost))
+                if (GoldCurrency?.CanAfford(level.Cost) == true)
                 {
                     upgradeButton.interactable = true;
                     upgradeButton.image.sprite = enabledButtonSprite;
@@ -107,13 +131,13 @@ namespace OctoberStudio.Upgrades.UI
         {
             var level = Data.GetLevel(UpgradeLevelId);
 
-            GameController.UpgradesManager.IncrementUpgradeLevel(Data.UpgradeType);
+            upgradesManager.IncrementUpgradeLevel(Data.UpgradeType);
             UpgradeLevelId++;
             GoldCurrency.Withdraw(level.Cost);
 
             RedrawVisuals();
 
-            GameController.AudioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
+            audioManager.PlaySound(AudioService.BUTTON_CLICK_HASH);
 
             EventSystem.current.SetSelectedGameObject(upgradeButton.gameObject);
         }

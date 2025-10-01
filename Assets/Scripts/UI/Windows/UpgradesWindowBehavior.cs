@@ -1,3 +1,4 @@
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
 using OctoberStudio.Extensions;
 using OctoberStudio.Input;
@@ -8,6 +9,7 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.Upgrades.UI
 {
@@ -25,6 +27,19 @@ namespace OctoberStudio.Upgrades.UI
 
         private List<UpgradeItemBehavior> items = new List<UpgradeItemBehavior>();
 
+        // Injected dependencies
+        private IUpgradesManager upgradesManager;
+        private IEasingManager easingManager;
+        private IInputManager inputManager;
+
+        [Inject]
+        public void Construct(IUpgradesManager upgradesManager, IEasingManager easingManager, IInputManager inputManager)
+        {
+            this.upgradesManager = upgradesManager;
+            this.easingManager = easingManager;
+            this.inputManager = inputManager;
+        }
+
         public void Init(UnityAction onBackButtonClicked)
         {
             backButton.onClick.AddListener(onBackButtonClicked);
@@ -36,7 +51,7 @@ namespace OctoberStudio.Upgrades.UI
                 var item = Instantiate(itemPrefab, itemsParent).GetComponent<UpgradeItemBehavior>();
                 item.transform.ResetLocal();
 
-                var level = GameController.UpgradesManager.GetUpgradeLevel(upgrade.UpgradeType);
+                var level = upgradesManager.GetUpgradeLevel(upgrade.UpgradeType);
 
                 item.Init(upgrade, level + 1);
                 item.onNavigationSelected += OnItemSelected;
@@ -50,7 +65,7 @@ namespace OctoberStudio.Upgrades.UI
         public void Open()
         {
             gameObject.SetActive(true);
-            EasingManager.DoNextFrame(() =>
+            easingManager.DoNextFrame(() =>
             {
                 if (items.Count > 0)
                 {
@@ -62,8 +77,8 @@ namespace OctoberStudio.Upgrades.UI
                 }
             });
 
-            GameController.InputManager.InputAsset.UI.Back.performed += OnBackInputClicked;
-            GameController.InputManager.onInputChanged += OnInputChanged;
+            inputManager.InputAsset.UI.Back.performed += OnBackInputClicked;
+            inputManager.onInputChanged += OnInputChanged;
         }
 
         public void ResetNavigation()
@@ -180,8 +195,8 @@ namespace OctoberStudio.Upgrades.UI
 
         public void Close()
         {
-            GameController.InputManager.InputAsset.UI.Back.performed -= OnBackInputClicked;
-            GameController.InputManager.onInputChanged -= OnInputChanged;
+            inputManager.InputAsset.UI.Back.performed -= OnBackInputClicked;
+            inputManager.onInputChanged -= OnInputChanged;
 
             gameObject.SetActive(false);
         }

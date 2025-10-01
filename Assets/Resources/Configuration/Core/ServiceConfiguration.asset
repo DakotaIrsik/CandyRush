@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ee1f0d73d0e2b64ebb4548f4a75296c, type: 3}
+  m_Name: ServiceConfiguration
+  m_EditorClassIdentifier: CandyRush.Runtime::OctoberStudio.DI.ServiceConfiguration
+  audioConfig: {fileID: 0}
+  saveConfig: {fileID: 0}
+  currenciesConfig: {fileID: 0}
+  upgradesConfig: {fileID: 0}
+  inputConfig: {fileID: 0}
+  poolPrefabs: []
+  defaultPoolSize: 10
+  enableDebugLogs: 0
+  enablePerformanceMetrics: 0

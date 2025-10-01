@@ -2,18 +2,26 @@ using OctoberStudio.Extensions;
 using OctoberStudio.Pool;
 using OctoberStudio.UI;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.Input
 {
     public class HighlightsParentBehavior : MonoBehaviour
     {
         private PoolComponent<RectTransform> buttonArrowPool;
+        private IInputManager inputManager;
 
         private RectTransform rightArrow;
         private RectTransform leftArrow;
 
         private HighlightableButtonUI highlightedButton;
         [SerializeField] GameObject buttonSelectionArrowPrefab;
+
+        [Inject]
+        public void Construct(IInputManager inputManager)
+        {
+            this.inputManager = inputManager;
+        }
 
         private void Awake()
         {
@@ -61,7 +69,7 @@ namespace OctoberStudio.Input
             leftArrow.ResetLocal();
             rightArrow.ResetLocal();
 
-            if (GameController.InputManager.ActiveInput != InputType.UIJoystick)
+            if (inputManager.ActiveInput != InputType.UIJoystick)
             {
                 leftArrow.localScale = Vector3.one;
                 rightArrow.localScale = new Vector3(-1, 1, 1);
@@ -95,7 +103,7 @@ namespace OctoberStudio.Input
             leftArrow.ResetLocal();
             rightArrow.ResetLocal();
 
-            if (GameController.InputManager.ActiveInput != InputType.UIJoystick)
+            if (inputManager.ActiveInput != InputType.UIJoystick)
             {
                 leftArrow.localScale = Vector3.one;
                 rightArrow.localScale = new Vector3(-1, 1, 1);

@@ -1,13 +1,17 @@
-﻿using OctoberStudio.Extensions;
+﻿using OctoberStudio.DI;
+using OctoberStudio.Extensions;
+using OctoberStudio.Input;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
     public class JoystickBehavior : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
     {
+        // Legacy static accessor for backward compatibility
         public static JoystickBehavior Instance { get; private set; }
 
         [SerializeField] Canvas canvas;
@@ -29,6 +33,7 @@ namespace OctoberStudio.UI
         public bool IsBeingUsed => isBeingUsed;
 
         private Camera canvasCamera;
+        private IInputManager inputManager;
 
         private Vector2 value = Vector2.zero;
         public Vector2 Value => value;
@@ -38,6 +43,13 @@ namespace OctoberStudio.UI
         public event UnityAction OnBeingUsed;
 
         public bool IsEnabled { get; private set; }
+
+        [Inject]
+        public void Construct(IInputManager inputManager)
+        {
+            this.inputManager = inputManager;
+            inputManager.RegisterJoystick(this);
+        }
 
         private void Awake()
         {
@@ -60,8 +72,6 @@ namespace OctoberStudio.UI
             isBeingUsed = false;
 
             defaultAnchoredPosition = backgroundRectTransform.anchoredPosition;
-
-            GameController.InputManager.RegisterJoystick(this);
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -140,7 +150,7 @@ namespace OctoberStudio.UI
 
         private void OnDestroy()
         {
-            GameController.InputManager.RemoveJoystick();
+            inputManager?.RemoveJoystick();
         }
 
         public void Hide()

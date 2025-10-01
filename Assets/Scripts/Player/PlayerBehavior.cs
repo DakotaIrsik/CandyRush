@@ -1,10 +1,16 @@
+using OctoberStudio.Audio;
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
 using OctoberStudio.Extensions;
+using OctoberStudio.Input;
+using OctoberStudio.Save;
 using OctoberStudio.Upgrades;
+using OctoberStudio.Vibration;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Events;
+using VContainer;
 
 namespace OctoberStudio
 {
@@ -18,6 +24,15 @@ namespace OctoberStudio
         public static PlayerBehavior Player => instance;
 
         [SerializeField] protected CharactersDatabase charactersDatabase;
+
+        // Injected dependencies
+        private ISaveManager saveManager;
+        private IInputManager inputManager;
+        private IStageFieldManager fieldManager;
+        private IUpgradesManager upgradesManager;
+        private IAudioManager audioManager;
+        private IVibrationManager vibrationManager;
+        private IEasingManager easingManager;
 
         [Header("Stats")]
         [SerializeField, Min(0.01f)] protected float speed = 2;
@@ -92,9 +107,28 @@ namespace OctoberStudio
         public CharacterData Data { get; set; }
         protected ICharacterBehavior Character { get; set; }
 
+        [Inject]
+        public void Construct(
+            ISaveManager saveManager,
+            IInputManager inputManager,
+            IStageFieldManager fieldManager,
+            IUpgradesManager upgradesManager,
+            IAudioManager audioManager,
+            IVibrationManager vibrationManager,
+            IEasingManager easingManager)
+        {
+            this.saveManager = saveManager;
+            this.inputManager = inputManager;
+            this.fieldManager = fieldManager;
+            this.upgradesManager = upgradesManager;
+            this.audioManager = audioManager;
+            this.vibrationManager = vibrationManager;
+            this.easingManager = easingManager;
+        }
+
         protected virtual void Awake()
         {
-            charactersSave = GameController.SaveManager.GetSave<CharactersSave>("Characters");
+            charactersSave = saveManager.GetSave<CharactersSave>("Characters");
             Data = charactersDatabase.GetCharacterData(charactersSave.SelectedCharacterId);
 
             Character = Instantiate(Data.Prefab).GetComponent<ICharacterBehavior>();
@@ -136,9 +170,17 @@ namespace OctoberStudio
                 }
             }
 
-            if (!IsMovingAlowed) return;
+            if (!IsMovingAlowed)
+            {
+                Debug.Log("[PlayerBehavior] Movement not allowed");
+                return;
+            }
 
-            var input = GameController.InputManager.MovementValue;
+            var input = inputManager.MovementValue;
+            if (input.magnitude > 0.1f)
+            {
+                Debug.Log($"[PlayerBehavior] Input received: {input}, InputManager type: {inputManager?.GetType().Name}");
+            }
 
             float joysticPower = input.magnitude;
             Character.SetSpeed(joysticPower);
@@ -147,12 +189,12 @@ namespace OctoberStudio
             {
                 var frameMovement = input * Time.deltaTime * Speed;
 
-                if (StageController.FieldManager.ValidatePosition(transform.position + Vector3.right * frameMovement.x, fenceOffset))
+                if (fieldManager.ValidatePosition(transform.position + Vector3.right * frameMovement.x, fenceOffset))
                 {
                     transform.position += Vector3.right * frameMovement.x;
                 }
 
-                if (StageController.FieldManager.ValidatePosition(transform.position + Vector3.up * frameMovement.y, fenceOffset))
+                if (fieldManager.ValidatePosition(transform.position + Vector3.up * frameMovement.y, fenceOffset))
                 {
                     transform.position += Vector3.up * frameMovement.y;
                 }
@@ -184,15 +226,15 @@ namespace OctoberStudio
         public virtual void RecalculateDamage(float damageMultiplier)
         {
             Damage = Data.BaseDamage * damageMultiplier;
-            if (GameController.UpgradesManager.IsUpgradeAquired(UpgradeType.Damage))
+            if (upgradesManager.IsUpgradeAquired(UpgradeType.Damage))
             {
-                Damage *= GameController.UpgradesManager.GetUpgadeValue(UpgradeType.Damage);
+                Damage *= upgradesManager.GetUpgadeValue(UpgradeType.Damage);
             }
         }
 
         public virtual void RecalculateMaxHP(float maxHPMultiplier)
         {
-            var upgradeValue = GameController.UpgradesManager.GetUpgadeValue(UpgradeType.Health);
+            var upgradeValue = upgradesManager.GetUpgadeValue(UpgradeType.Health);
             healthbar.ChangeMaxHP((Data.BaseHP + upgradeValue) * maxHPMultiplier);
         }
 
@@ -210,9 +252,9 @@ namespace OctoberStudio
         {
             DamageReductionMultiplier = (100f - initialDamageReductionPercent - damageReductionPercent) / 100f;
 
-            if (GameController.UpgradesManager.IsUpgradeAquired(UpgradeType.Armor))
+            if (upgradesManager.IsUpgradeAquired(UpgradeType.Armor))
             {
-                DamageReductionMultiplier *= GameController.UpgradesManager.GetUpgadeValue(UpgradeType.Armor);
+                DamageReductionMultiplier *= upgradesManager.GetUpgadeValue(UpgradeType.Armor);
             } 
         }
 
@@ -243,7 +285,7 @@ namespace OctoberStudio
 
         public virtual void Heal(float hp)
         {
-            healthbar.AddHP(hp + GameController.UpgradesManager.GetUpgadeValue(UpgradeType.Healing));
+            healthbar.AddHP(hp + upgradesManager.GetUpgadeValue(UpgradeType.Healing));
         }
 
         public virtual void Revive()
@@ -260,14 +302,14 @@ namespace OctoberStudio
             reviveBackgroundSpriteRenderer.DoAlpha(0f, 0.3f, reviveBottomHideDelay).SetUnscaledTime(true).SetOnFinish(() => reviveBackgroundSpriteRenderer.gameObject.SetActive(false));
             reviveBottomSpriteRenderer.DoAlpha(0f, 0.3f, reviveBottomHideDelay).SetUnscaledTime(true).SetOnFinish(() => reviveBottomSpriteRenderer.gameObject.SetActive(false));
 
-            GameController.AudioManager.PlaySound(REVIVE_HASH);
-            EasingManager.DoAfter(1f, () =>
+            audioManager.PlaySound(REVIVE_HASH);
+            easingManager.DoAfter(1f, () =>
             {
                 IsMovingAlowed = true;
                 Character.SetSortingOrder(0);
             });
 
-            EasingManager.DoAfter(3, () => invincible = false);
+            easingManager.DoAfter(3, () => invincible = false);
         }
 
         public virtual void CheckTriggerEnter2D(Collider2D collision)
@@ -343,23 +385,23 @@ namespace OctoberStudio
                 reviveBottomSpriteRenderer.gameObject.SetActive(true);
                 reviveBottomSpriteRenderer.DoAlpha(reviveBottomAlpha, 0.3f, reviveBottomSpawnDelay).SetUnscaledTime(true);
 
-                GameController.AudioManager.PlaySound(DEATH_HASH);
+                audioManager.PlaySound(DEATH_HASH);
 
-                EasingManager.DoAfter(0.5f, () =>
+                easingManager.DoAfter(0.5f, () =>
                 {
                     onPlayerDied?.Invoke();
                 }).SetUnscaledTime(true);
 
-                GameController.VibrationManager.StrongVibration();
+                vibrationManager.StrongVibration();
             } else
             {
                 if(Time.time - lastTimeVibrated > 0.05f)
                 {
-                    GameController.VibrationManager.LightVibration();
+                    vibrationManager.LightVibration();
                     lastTimeVibrated = Time.time;
                 }
                 
-                GameController.AudioManager.PlaySound(RECEIVING_DAMAGE_HASH);
+                audioManager.PlaySound(RECEIVING_DAMAGE_HASH);
             }
         }
     }

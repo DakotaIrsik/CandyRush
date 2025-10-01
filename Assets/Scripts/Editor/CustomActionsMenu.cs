@@ -22,7 +22,9 @@ namespace OctoberStudio.Save
         [MenuItem("Tools/October/Open All Stages", priority = 2)]
         private static void OpenAllStages()
         {
-            var stageSave = GameController.SaveManager.GetSave<StageSave>("Stage");
+            // Editor script - access through Unity's Object.FindObjectOfType for development tools
+            var saveManager = Object.FindObjectOfType<SaveManager>();
+            var stageSave = saveManager.GetSave<StageSave>("Stage");
 
             string[] guiID = AssetDatabase.FindAssets("t:StagesDatabase");
 
@@ -48,7 +50,9 @@ namespace OctoberStudio.Save
         [MenuItem("Tools/October/Get 1K Gold", priority = 1)]
         private static void GetGold()
         {
-            var gold = GameController.SaveManager.GetSave<CurrencySave>("gold");
+            // Editor script - access through Unity's Object.FindObjectOfType for development tools
+            var saveManager = Object.FindObjectOfType<SaveManager>();
+            var gold = saveManager.GetSave<CurrencySave>("gold");
 
             gold.Deposit(1000);
         }

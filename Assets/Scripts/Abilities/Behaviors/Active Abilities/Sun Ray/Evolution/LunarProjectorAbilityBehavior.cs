@@ -54,7 +54,7 @@ namespace OctoberStudio.Abilities
                     projectiles.Add(projectile);
                 }
 
-                GameController.AudioManager.PlaySound(LUNAR_PROJECTOR_LAUNCH_HASH);
+                audioManager.PlaySound(LUNAR_PROJECTOR_LAUNCH_HASH);
 
                 yield return new WaitForSeconds(AbilityLevel.AbilityCooldown * PlayerBehavior.Player.CooldownMultiplier);
             }

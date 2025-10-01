@@ -1,14 +1,26 @@
+using OctoberStudio.DI;
+using OctoberStudio.Save;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.Upgrades
 {
-    public class UpgradesManager : MonoBehaviour
+    public class UpgradesManager : MonoBehaviour, IUpgradesManager
     {
         private static UpgradesManager instance;
 
         [SerializeField] UpgradesDatabase database;
 
         private UpgradesSave save;
+
+        // Injected dependencies
+        private ISaveManager saveManager;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager)
+        {
+            this.saveManager = saveManager;
+        }
 
         private void Awake()
         {
@@ -22,8 +34,19 @@ namespace OctoberStudio.Upgrades
             instance = this;
 
             DontDestroyOnLoad(this);
+        }
 
-            save = GameController.SaveManager.GetSave<UpgradesSave>("Upgrades Save");
+        private void Start()
+        {
+            // Check if dependencies are available (VContainer injection)
+            if (saveManager == null)
+            {
+                Debug.LogWarning("[UpgradesManager] SaveManager dependency not injected - disabling UpgradesManager in favor of pure DI services");
+                gameObject.SetActive(false);
+                return;
+            }
+
+            save = saveManager.GetSave<UpgradesSave>("Upgrades Save");
             save.Init();
 
             for(int i = 0; i < database.UpgradesCount; i++)

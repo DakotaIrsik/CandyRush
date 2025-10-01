@@ -62,7 +62,6 @@ namespace OctoberStudio.Save
                 StartCoroutine(AutoSaveCoroutine());
             }
 
-            GameController.RegisterSaveManager(this);
         }
 
         /// <summary>
@@ -300,11 +299,5 @@ namespace OctoberStudio.Save
         [DllImport("__Internal")]
         private static extern void deleteItem(string keyName);
 #endif
-    }
-
-    public enum SaveType
-    {
-        SaveFile,
-        PlayerPrefs,
     }
 }

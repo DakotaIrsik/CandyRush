@@ -1,11 +1,20 @@
 using OctoberStudio.Easing;
 using OctoberStudio.Extensions;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio
 {
     public class HealthbarBehavior : MonoBehaviour
     {
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IEasingManager easingManager)
+        {
+            this.easingManager = easingManager;
+        }
+
         [SerializeField] protected SpriteRenderer fillImage;
         [SerializeField] protected SpriteRenderer backgroundImage;
         [SerializeField] protected Transform maskTransform;
@@ -94,7 +103,7 @@ namespace OctoberStudio
         {
             if(duration > 0)
             {
-                EasingManager.DoFloat(0, MaxHP, duration, (hp) =>
+                easingManager.DoFloat(0, MaxHP, duration, (hp) =>
                 {
                     HP = hp;
                     Redraw();

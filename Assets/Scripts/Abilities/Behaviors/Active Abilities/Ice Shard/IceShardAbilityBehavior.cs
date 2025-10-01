@@ -52,9 +52,9 @@ namespace OctoberStudio.Abilities
                     newProjectiles.Add(projectile);
                 }
 
-                GameController.AudioManager.PlaySound(ICE_SHARD_LAUNCH_HASH);
+                audioManager.PlaySound(ICE_SHARD_LAUNCH_HASH);
 
-                projectileCoroutine = EasingManager.DoAfter(AbilityLevel.ProjectileLifetime * PlayerBehavior.Player.DurationMultiplier, () => {
+                projectileCoroutine = easingManager.DoAfter(AbilityLevel.ProjectileLifetime * PlayerBehavior.Player.DurationMultiplier, () => {
                     for (int i = 0; i < newProjectiles.Count; i++)
                     {
                         newProjectiles[i].gameObject.SetActive(false);

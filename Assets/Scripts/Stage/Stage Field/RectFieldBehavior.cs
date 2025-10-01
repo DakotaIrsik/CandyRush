@@ -15,6 +15,7 @@ namespace OctoberStudio
             base.Init(stageFieldData, spawnProp);
 
             chunk = Object.Instantiate(stageFieldData.GetBackgroundPrefabs().Random()).GetComponent<StageChunkBehavior>();
+            chunk.Construct(cameraManager);
 
             chunk.transform.position = Vector3.zero;
             chunk.transform.rotation = Quaternion.identity;

@@ -2,7 +2,9 @@ using OctoberStudio.Abilities;
 using OctoberStudio.Abilities.UI;
 using OctoberStudio.Audio;
 using OctoberStudio.Bossfight;
+using OctoberStudio.DI;
 using OctoberStudio.Easing;
+using OctoberStudio.Input;
 using OctoberStudio.UI;
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio
 {
@@ -40,6 +43,19 @@ namespace OctoberStudio
         [SerializeField] CanvasGroup bossfightWarning;
         [SerializeField] BossfightHealthbarBehavior bossHealthbar;
 
+        // Injected dependencies
+        private IAudioManager audioManager;
+        private IInputManager inputManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager, IInputManager inputManager, IEasingManager easingManager)
+        {
+            this.audioManager = audioManager;
+            this.inputManager = inputManager;
+            this.easingManager = easingManager;
+        }
+
         private void Awake()
         {
             canvas = GetComponent<Canvas>();
@@ -59,7 +75,7 @@ namespace OctoberStudio
         {
             abilitiesWindow.Init();
 
-            GameController.InputManager.InputAsset.UI.Settings.performed += OnSettingsInputClicked;
+            inputManager.InputAsset.UI.Settings.performed += OnSettingsInputClicked;
         }
 
         private void OnSettingsInputClicked(InputAction.CallbackContext context)
@@ -113,7 +129,7 @@ namespace OctoberStudio
         {
             abilitiesWindow.SetData(abilities);
 
-            EasingManager.DoAfter(0.2f, () =>
+            easingManager.DoAfter(0.2f, () =>
             {
                 for (int i = 0; i < abilitiesLists.Count; i++)
                 {
@@ -128,7 +144,7 @@ namespace OctoberStudio
 
             abilitiesWindow.Show(isLevelUp);
 
-            GameController.InputManager.InputAsset.UI.Settings.performed -= OnSettingsInputClicked;
+            inputManager.InputAsset.UI.Settings.performed -= OnSettingsInputClicked;
         }
 
         private void OnAbilitiesPanelStartedClosing()
@@ -145,41 +161,41 @@ namespace OctoberStudio
 
         private void OnAbilitiesPanelClosed()
         {
-            GameController.InputManager.InputAsset.UI.Settings.performed += OnSettingsInputClicked;
+            inputManager.InputAsset.UI.Settings.performed += OnSettingsInputClicked;
         }
 
         public void ShowChestWindow(int tierId, List<AbilityData> abilities, List<AbilityData> selectedAbilities)
         {
             chestWindow.OpenWindow(tierId, abilities, selectedAbilities);
 
-            GameController.InputManager.InputAsset.UI.Settings.performed -= OnSettingsInputClicked;
+            inputManager.InputAsset.UI.Settings.performed -= OnSettingsInputClicked;
         }
 
         private void OnChestWindowClosed()
         {
-            GameController.InputManager.InputAsset.UI.Settings.performed += OnSettingsInputClicked;
+            inputManager.InputAsset.UI.Settings.performed += OnSettingsInputClicked;
         }
 
         private void PauseButtonClick()
         {
-            GameController.AudioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
+            audioManager.PlaySound(AudioManager.BUTTON_CLICK_HASH);
 
             joystick.Disable();
 
             blackgroundTint.Show();
             pauseWindow.Open();
 
-            GameController.InputManager.InputAsset.UI.Settings.performed -= OnSettingsInputClicked;
+            inputManager.InputAsset.UI.Settings.performed -= OnSettingsInputClicked;
         }
         
         private void OnPauseWindowClosed()
         {
-            if(GameController.InputManager.ActiveInput == Input.InputType.UIJoystick)
+            if(inputManager.ActiveInput == InputType.UIJoystick)
             {
                 joystick.Enable();
             }
 
-            GameController.InputManager.InputAsset.UI.Settings.performed += OnSettingsInputClicked;
+            inputManager.InputAsset.UI.Settings.performed += OnSettingsInputClicked;
         }
 
         private void OnPauseWindowStartedClosing()

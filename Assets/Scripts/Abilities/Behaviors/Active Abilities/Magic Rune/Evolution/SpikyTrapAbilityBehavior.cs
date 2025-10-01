@@ -43,7 +43,7 @@ namespace OctoberStudio.Abilities
                     mine.SetData(AbilityLevel, spikePool);
                 }
 
-                GameController.AudioManager.PlaySound(SPIKY_TRAP_SET_UP_HASH);
+                audioManager.PlaySound(SPIKY_TRAP_SET_UP_HASH);
 
                 yield return new WaitForSeconds(AbilityLevel.AbilityCooldown * PlayerBehavior.Player.CooldownMultiplier);
             }

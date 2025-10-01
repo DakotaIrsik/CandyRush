@@ -36,7 +36,7 @@ namespace OctoberStudio.Abilities
                 projectiles.Add(projectile);
             }
 
-            GameController.AudioManager.PlaySound(SILVER_STAKES_LAUNCH_HASH);
+            audioManager.PlaySound(SILVER_STAKES_LAUNCH_HASH);
         }
 
         private void Disable()

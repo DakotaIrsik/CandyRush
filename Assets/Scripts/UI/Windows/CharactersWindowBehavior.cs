@@ -8,6 +8,7 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
@@ -24,7 +25,16 @@ namespace OctoberStudio.UI
         [SerializeField] ScrollRect scrollView;
         [SerializeField] Button backButton;
 
+        private IInputManager inputManager;
+        private IEasingManager easingManager;
         private List<CharacterItemBehavior> items = new List<CharacterItemBehavior>();
+
+        [Inject]
+        public void Construct(IInputManager inputManager, IEasingManager easingManager)
+        {
+            this.inputManager = inputManager;
+            this.easingManager = easingManager;
+        }
 
         public void Init(UnityAction onBackButtonClicked)
         {
@@ -48,7 +58,7 @@ namespace OctoberStudio.UI
         {
             gameObject.SetActive(true);
 
-            EasingManager.DoNextFrame(() => {
+            easingManager.DoNextFrame(() => {
                 if(items.Count > 0)
                 {
                     items[0].Select();
@@ -58,8 +68,8 @@ namespace OctoberStudio.UI
                 }
             });
 
-            GameController.InputManager.InputAsset.UI.Back.performed += OnBackInputClicked;
-            GameController.InputManager.onInputChanged += OnInputChanged;
+            inputManager.InputAsset.UI.Back.performed += OnBackInputClicked;
+            inputManager.onInputChanged += OnInputChanged;
         }
 
         public void ResetNavigation()
@@ -173,8 +183,8 @@ namespace OctoberStudio.UI
 
         public void Close()
         {
-            GameController.InputManager.InputAsset.UI.Back.performed -= OnBackInputClicked;
-            GameController.InputManager.onInputChanged -= OnInputChanged;
+            inputManager.InputAsset.UI.Back.performed -= OnBackInputClicked;
+            inputManager.onInputChanged -= OnInputChanged;
 
             gameObject.SetActive(false);
         }

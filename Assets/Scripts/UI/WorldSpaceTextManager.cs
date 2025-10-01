@@ -1,10 +1,12 @@
+using OctoberStudio.DI;
 using OctoberStudio.Pool;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.UI
 {
-    public class WorldSpaceTextManager : MonoBehaviour
+    public class WorldSpaceTextManager : MonoBehaviour, IWorldSpaceTextManager
     {
         [SerializeField] RectTransform canvasRect;
 
@@ -16,8 +18,15 @@ namespace OctoberStudio.UI
         [SerializeField] float maxY;
         [SerializeField] float duration;
 
+        private ICameraManager cameraManager;
         private PoolComponent<TextIndicatorBehavior> indicatorsPool;
         private Queue<IndicatorData> indicators = new Queue<IndicatorData>();
+
+        [Inject]
+        public void Construct(ICameraManager cameraManager)
+        {
+            this.cameraManager = cameraManager;
+        }
 
         private void Start()
         {
@@ -26,7 +35,7 @@ namespace OctoberStudio.UI
 
         public void SpawnText(Vector2 worldPos, string text)
         {
-            var viewportPos = Camera.main.WorldToViewportPoint(worldPos);
+            var viewportPos = cameraManager.MainCamera.WorldToViewportPoint(worldPos);
 
             var indicator = indicatorsPool.GetEntity();
 
@@ -60,8 +69,21 @@ namespace OctoberStudio.UI
                 data.indicator.SetPosition(Vector2.up * positionCurve.Evaluate(t) * maxY);
                 data.indicator.SetScale(Vector3.one * scaleCurve.Evaluate(t) * maxScale);
 
-                data.indicator.SetAnchors(Camera.main.WorldToViewportPoint(data.worldPosition));
+                data.indicator.SetAnchors(cameraManager.MainCamera.WorldToViewportPoint(data.worldPosition));
             }
+        }
+
+        // IWorldSpaceTextManager interface implementation
+        public void ShowDamageText(Vector2 position, float damage)
+        {
+            string damageText = damage.ToString("F0");
+            SpawnText(position, damageText);
+        }
+
+        public void ShowHealText(Vector2 position, float heal)
+        {
+            string healText = "+" + heal.ToString("F0");
+            SpawnText(position, healText);
         }
 
         private class IndicatorData

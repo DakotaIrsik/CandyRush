@@ -75,7 +75,7 @@ namespace OctoberStudio.Abilities
                     }
 
                     IEasingCoroutine easingCoroutine = null;
-                    easingCoroutine = EasingManager.DoAfter(1, () =>
+                    easingCoroutine = easingManager.DoAfter(1, () =>
                     {
                         particle.gameObject.SetActive(false);
                         easingCoroutines.Remove(easingCoroutine);
@@ -83,7 +83,7 @@ namespace OctoberStudio.Abilities
 
                     easingCoroutines.Add(easingCoroutine);
 
-                    GameController.AudioManager.PlaySound(THUNDER_RING_STRIKE_HASH);
+                    audioManager.PlaySound(THUNDER_RING_STRIKE_HASH);
                 }
 
                 yield return new WaitForSeconds(AbilityLevel.AbilityCooldown * PlayerBehavior.Player.CooldownMultiplier - AbilityLevel.DurationBetweenHits);

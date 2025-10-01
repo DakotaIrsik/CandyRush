@@ -1,12 +1,16 @@
+using OctoberStudio.Audio;
+using OctoberStudio.DI;
+using OctoberStudio.Save;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.Abilities
 {
     using OctoberStudio.Easing;
     using OctoberStudio.Extensions;
 
-    public class AbilityManager : MonoBehaviour
+    public class AbilityManager : MonoBehaviour, IAbilityManager
     {
         [SerializeField] protected AbilitiesDatabase abilitiesDatabase;
 
@@ -19,15 +23,34 @@ namespace OctoberStudio.Abilities
         protected AbilitiesSave save;
         protected StageSave stageSave;
 
+        // Injected dependencies
+        protected ISaveManager saveManager;
+        protected IExperienceManager experienceManager;
+        protected GameScreenBehavior gameScreen;
+        protected IAudioManager audioManager;
+        protected ICameraManager cameraManager;
+        protected IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager, IExperienceManager experienceManager, GameScreenBehavior gameScreen, IAudioManager audioManager, ICameraManager cameraManager, IEasingManager easingManager)
+        {
+            this.saveManager = saveManager;
+            this.experienceManager = experienceManager;
+            this.gameScreen = gameScreen;
+            this.audioManager = audioManager;
+            this.cameraManager = cameraManager;
+            this.easingManager = easingManager;
+        }
+
         public int ActiveAbilitiesCapacity => abilitiesDatabase.ActiveAbilitiesCapacity;
         public int PassiveAbilitiesCapacity => abilitiesDatabase.PassiveAbilitiesCapacity;
 
         protected virtual void Awake()
         {
-            save = GameController.SaveManager.GetSave<AbilitiesSave>("Abilities Save");
+            save = saveManager.GetSave<AbilitiesSave>("Abilities Save");
             save.Init();
 
-            stageSave = GameController.SaveManager.GetSave<StageSave>("Stage");
+            stageSave = saveManager.GetSave<StageSave>("Stage");
 
             // Usualy the data isn't getting reset only if the Player continues the game after they've closed it without dying
             if(stageSave.ResetStageData) save.Clear();
@@ -35,7 +58,7 @@ namespace OctoberStudio.Abilities
 
         public virtual void Init(PresetData testingPreset, CharacterData characterData)
         {
-            StageController.ExperienceManager.onXpLevelChanged += OnXpLevelChanged;
+            experienceManager.onXpLevelChanged += OnXpLevelChanged;
 
             if(testingPreset != null)
             {
@@ -71,7 +94,7 @@ namespace OctoberStudio.Abilities
                         AddAbility(data, 0);
                     } else
                     {
-                        EasingManager.DoAfter(0.3f, ShowWeaponSelectScreen);
+                        easingManager.DoAfter(0.3f, ShowWeaponSelectScreen);
                     }
                     
                 }
@@ -86,13 +109,17 @@ namespace OctoberStudio.Abilities
             {
                 // Just showing weapon selection window with some delay
 
-                EasingManager.DoAfter(0.3f, ShowWeaponSelectScreen);
+                easingManager.DoAfter(0.3f, ShowWeaponSelectScreen);
             }
         }
 
         public virtual void AddAbility(AbilityData abilityData, int level = 0)
         {
             IAbilityBehavior ability = Instantiate(abilityData.Prefab).GetComponent<IAbilityBehavior>();
+
+            // Manually inject dependencies for instantiated ability behaviors
+            ability.Construct(audioManager, cameraManager, easingManager);
+
             ability.Init(abilityData, level);
 
             if (abilityData.IsEvolution)
@@ -179,7 +206,7 @@ namespace OctoberStudio.Abilities
 
             if (selectedAbilities.Count > 0)
             {
-                StageController.GameScreen.ShowAbilitiesPanel(selectedAbilities, false);
+                gameScreen.ShowAbilitiesPanel(selectedAbilities, false);
             }
         }
 
@@ -278,7 +305,7 @@ namespace OctoberStudio.Abilities
 
             if(selectedAbilities.Count > 0)
             {
-                StageController.GameScreen.ShowAbilitiesPanel(selectedAbilities, true);
+                gameScreen.ShowAbilitiesPanel(selectedAbilities, true);
             }
         }
 
@@ -611,7 +638,7 @@ namespace OctoberStudio.Abilities
                     i--;
                 }
             }
-            StageController.GameScreen.ShowChestWindow(tierId, availableAbilities, selectedAbilities);
+            gameScreen.ShowChestWindow(tierId, availableAbilities, selectedAbilities);
 
             // Applying abilities
             foreach (var ability in selectedAbilities)

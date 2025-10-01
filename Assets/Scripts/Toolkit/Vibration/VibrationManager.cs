@@ -1,20 +1,39 @@
 using OctoberStudio.Easing;
 using OctoberStudio.Input;
+using OctoberStudio.Save;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 #if UNITY_WEBGL
 using UnityEngine.InputSystem.WebGL;
 #endif
 
 namespace OctoberStudio.Vibration
 {
+    /// <summary>
+    /// DEPRECATED: Use VibrationService via dependency injection instead
+    /// This MonoBehaviour wrapper is kept for backward compatibility only
+    /// </summary>
+    [System.Obsolete("Use VibrationService via dependency injection instead")]
     public class VibrationManager : MonoBehaviour, IVibrationManager
     {
-        private static VibrationManager instance;
 
         private VibrationSave save;
 
         private SimpleVibrationHandler vibrationHandler;
+
+        // Injected dependencies
+        private ISaveManager saveManager;
+        private IInputManager inputManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(ISaveManager saveManager, IInputManager inputManager, IEasingManager easingManager)
+        {
+            this.saveManager = saveManager;
+            this.inputManager = inputManager;
+            this.easingManager = easingManager;
+        }
 
         public bool IsVibrationEnabled { get => save.IsVibrationEnabled; set => save.IsVibrationEnabled = value; }
 
@@ -22,21 +41,21 @@ namespace OctoberStudio.Vibration
 
         private void Awake()
         {
-            if(instance != null)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            instance = this;
+            // Legacy initialization - service pattern doesn't need singleton
             DontDestroyOnLoad(gameObject);
-
-            GameController.RegisterVibrationManager(this);
         }
 
         public void Start()
         {
-            save = GameController.SaveManager.GetSave<VibrationSave>("Vibration");
+            // Check if dependencies are available (VContainer injection)
+            if (saveManager == null)
+            {
+                Debug.LogWarning("[VibrationManager] SaveManager dependency not injected - disabling VibrationManager in favor of pure DI services");
+                gameObject.SetActive(false);
+                return;
+            }
+
+            save = saveManager.GetSave<VibrationSave>("Vibration");
             IsVibrationEnabled = true;
 #if UNITY_EDITOR
             vibrationHandler = new SimpleVibrationHandler();
@@ -57,7 +76,7 @@ namespace OctoberStudio.Vibration
 
             if (duration <= 0) return;
 
-            if(GameController.InputManager.ActiveInput != InputType.Gamepad)
+            if(inputManager.ActiveInput != InputType.Gamepad)
             {
                 vibrationHandler.Vibrate(duration, intensity);
             }
@@ -70,7 +89,7 @@ namespace OctoberStudio.Vibration
 #endif
                 gamepadVibrationCoroutine.StopIfExists();
 
-                gamepadVibrationCoroutine = EasingManager.DoAfter(duration, () => 
+                gamepadVibrationCoroutine = easingManager.DoAfter(duration, () => 
                 {
 #if UNITY_WEBGL && !UNITY_EDITOR
                 if (WebGLGamepad.current != null) WebGLGamepad.current.SetMotorSpeeds(0, 0);

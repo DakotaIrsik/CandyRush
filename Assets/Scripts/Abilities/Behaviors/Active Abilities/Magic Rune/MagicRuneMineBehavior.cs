@@ -1,10 +1,21 @@
+using OctoberStudio.Audio;
 using OctoberStudio.Easing;
 using UnityEngine;
+using VContainer;
 
 namespace OctoberStudio.Abilities
 {
     public class MagicRuneMineBehavior : MonoBehaviour
     {
+        private IAudioManager audioManager;
+        private IEasingManager easingManager;
+
+        [Inject]
+        public void Construct(IAudioManager audioManager, IEasingManager easingManager)
+        {
+            this.audioManager = audioManager;
+            this.easingManager = easingManager;
+        }
         private static readonly int MAGIC_RUNE_EXPLOSION_HASH = "Magic Rune Explosion".GetHashCode();
 
         [SerializeField] CircleCollider2D mineTriggerCollider;
@@ -28,9 +39,9 @@ namespace OctoberStudio.Abilities
 
             mineVisuals.SetActive(true);
 
-            EasingManager.DoAfter(0.2f, () => mineTriggerCollider.enabled = true);
+            easingManager.DoAfter(0.2f, () => mineTriggerCollider.enabled = true);
 
-            lifetimeCoroutine = EasingManager.DoAfter(stage.MineLifetime, Explode);
+            lifetimeCoroutine = easingManager.DoAfter(stage.MineLifetime, Explode);
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
@@ -59,11 +70,11 @@ namespace OctoberStudio.Abilities
 
             explosionParticle.Play();
 
-            EasingManager.DoAfter(1f, () => gameObject.SetActive(false));
+            easingManager.DoAfter(1f, () => gameObject.SetActive(false));
 
             lifetimeCoroutine.StopIfExists();
 
-            GameController.AudioManager.PlaySound(MAGIC_RUNE_EXPLOSION_HASH);
+            audioManager.PlaySound(MAGIC_RUNE_EXPLOSION_HASH);
         }
     }
 }

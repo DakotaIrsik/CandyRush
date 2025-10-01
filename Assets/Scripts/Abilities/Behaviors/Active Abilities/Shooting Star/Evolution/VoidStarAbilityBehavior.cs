@@ -28,7 +28,7 @@ namespace OctoberStudio.Abilities
         {
             base.Init(data, levelId);
 
-            GameController.AudioManager.PlaySound(VOID_STARS_LAUNCH_HASH);
+            audioManager.PlaySound(VOID_STARS_LAUNCH_HASH);
         }
 
         protected override void SetAbilityLevel(int stageId)
@@ -56,7 +56,7 @@ namespace OctoberStudio.Abilities
                 stars.Add(star);
             }
 
-            EasingManager.DoFloat(0, 1, 0.5f, value => radiusMultiplier = value).SetEasing(EasingType.SineOut);
+            easingManager.DoFloat(0, 1, 0.5f, value => radiusMultiplier = value).SetEasing(EasingType.SineOut);
         }
 
         private void LateUpdate()

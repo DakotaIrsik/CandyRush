@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using VContainer;
+using OctoberStudio.Input;
 
 namespace OctoberStudio.UI
 {
@@ -14,6 +16,15 @@ namespace OctoberStudio.UI
         protected Button button;
 
         private Vector3 savedPosition = Vector3.zero;
+
+        // Injected dependencies
+        private IInputManager inputManager;
+
+        [Inject]
+        public void Construct(IInputManager inputManager)
+        {
+            this.inputManager = inputManager;
+        }
 
         protected virtual void Awake()
         {
@@ -28,28 +39,37 @@ namespace OctoberStudio.UI
                 {
                     savedPosition = transform.position;
 
-                    GameController.InputManager.Highlights.RefreshHighlight();
+                    inputManager.Highlights?.RefreshHighlight();
                 }
             }
         }
 
         public virtual void Highlight()
         {
-            if (button.enabled) GameController.InputManager.Highlights.Highlight(this);
+            if (button.enabled && inputManager?.Highlights != null)
+            {
+                inputManager.Highlights.Highlight(this);
+            }
 
             savedPosition = transform.position;
         }
 
         public virtual void StopHighlighting()
         {
-            if (IsHighlighted) GameController.InputManager.Highlights.StopHighlighting(this);
+            if (IsHighlighted && inputManager?.Highlights != null)
+            {
+                inputManager.Highlights.StopHighlighting(this);
+            }
+
+            IsHighlighted = false;
+            transform.position = savedPosition;
         }
 
         private void OnDisable()
         {
-            if (IsHighlighted)
+            if (IsHighlighted && inputManager?.Highlights != null)
             {
-                GameController.InputManager.Highlights.StopHighlighting(this);
+                inputManager.Highlights.StopHighlighting(this);
             }
         }
 
